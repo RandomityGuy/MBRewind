@@ -717,9 +717,7 @@ std::string RewindManager::load(std::string path,bool isGhost)
 		if (m.tell() >= m.length()) break;
 	}
 
-	//if (isGhost) //Well we reverse the frame list
-	//{
-	//}
+
 	TGE::Con::printf("Loaded replay %s, %d Frames", replayPath.c_str(), framecount);
 	setFrameElapsedTimes();
 	std::reverse(Frames.begin(), Frames.end());
@@ -947,6 +945,7 @@ RewindableState<T> RewindManager::InterpolateRewindableState(RewindableState<T> 
 	if (binding == NULL)
 	{
 		TGE::Con::errorf("RewindManager::InterpolateRewindableState CANNOT INTERPOLATE FOR NAMESPACE %s", one.bindingnamespace.c_str());
+		return;
 	}
 
 	int type = binding->getStorageType();
@@ -1124,8 +1123,9 @@ Frame* RewindManager::getRealtimeFrameAtMs(float ms)
 Frame* RewindManager::getFrameAtElapsedMs(float ms)
 {
 	DebugPrint("Entering RewindManager::getFrameAtElapsedMs(%f)",ms);
-	//binary search version cause apparently the old algorithm consistently breaks while
-	//scrubbing very specific replays, i have yet to find why it doesnt work for those and what causes those replays in the first place
+	// binary search version cause apparently the old algorithm consistently breaks while
+	// scrubbing very specific replays, i have yet to find why it doesnt work for those and what causes those replays in the first place
+	// 8/1/2021: bruh fuck that, lets all forget the garbage that was the old algorithm
 	if (ms < Frames[0].elapsedTime)
 		return new Frame(Frames[0]);
 	if (ms > Frames.back().elapsedTime)
@@ -1319,50 +1319,14 @@ Frame* RewindManager::getNextFrame(float delta)
 
 	if (streamTimePosition < 0) streamTimePosition = 0;
 
-	//if (delta < 0) return NULL;
-
 	int timepos = streamTimePosition;
 
-	//auto res = std::find_if(Frames.rbegin(), Frames.rend(), [&](Frame i) {return i.elapsedTime < timepos; });
-
-	//int tempindex = std::distance(Frames.begin(), res.base()) - 1;
-
-	//if (delta < 0) currentIndex += (ceilf((float)delta/averageDelta)+3); //Just to be safe
-
-	Frame* testF = getFrameAtElapsedMs(streamTimePosition); //To be safe, i used 3, can be any positive arbitrary number
+	Frame* testF = getFrameAtElapsedMs(streamTimePosition); 
 
 	if (testF == NULL) return NULL;
 
 	Frame* f = new Frame(*testF);
 	
-	//if (currentIndex >= Frames.size())
-	//{
-	//	currentIndex = Frames.size() - 1;
-	//}
-
-	//for (int i = currentIndex; i >= 0; i--)
-	//{
-	//	if (Frames[i].elapsedTime < streamTimePosition)
-	//	{
-	//		currentIndex--;
-	//	}
-	//	else
-	//	{
-	//		break;
-	//	}
-	//}
-
-	//while (Frames.back().elapsedTime < streamTimePosition)
-	//{
-	//	if (!(Frames.at(Frames.size() - 2).elapsedTime > streamTimePosition))
-	//	{
-	//		Frames.pop_back(); //We just delete those frames we have passed but we keep the previous frame for future interpolation
-	//	}
-	//	else
-	//	{
-	//		break;
-	//	}
-	//}
 	DebugPrint("Leaving RewindManager::getNextFrame");
 	return f;
 }
@@ -1374,13 +1338,7 @@ Frame* RewindManager::getNextNonElapsedFrame(float delta)
 
 	if (streamTimePosition < 0) streamTimePosition = 0;
 
-	//if (delta < 0) return NULL;
-
 	int timepos = streamTimePosition;
-
-	//auto res = std::find_if(Frames.rbegin(), Frames.rend(), [&](Frame i) {return i.elapsedTime < timepos; });
-
-	//int tempindex = std::distance(Frames.begin(), res.base()) - 1;
 
 	if (delta < 0) currentIndex += (ceilf((float)delta / averageDelta) + 3); //Just to be safe
 
@@ -1407,17 +1365,6 @@ Frame* RewindManager::getNextNonElapsedFrame(float delta)
 		}
 	}
 
-	//while (Frames.back().elapsedTime < streamTimePosition)
-	//{
-	//	if (!(Frames.at(Frames.size() - 2).elapsedTime > streamTimePosition))
-	//	{
-	//		Frames.pop_back(); //We just delete those frames we have passed but we keep the previous frame for future interpolation
-	//	}
-	//	else
-	//	{
-	//		break;
-	//	}
-	//}
 	DebugPrint("Leaving RewindManager::getNextNonElapsedFrame");
 	return f;
 }

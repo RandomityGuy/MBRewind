@@ -2,6 +2,9 @@
 #include <cstdint>
 #include <cstdbool>
 #include <string>
+/*
+*	Original implementation of MemoryStream in C++
+*/
 class MemoryStream
 {
 	const int REALLOCATE_SIZE = 256;

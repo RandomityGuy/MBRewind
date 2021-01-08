@@ -70,8 +70,6 @@ public:
 	CheckpointState checkpointState;
 	bool eggstate;
 #endif
-	//std::vector<RewindableState> rewindableStates; // API STATES
-	//std::vector<RewindableState> rewindableSOStates;
 
 	// huge ass waste of memory
 

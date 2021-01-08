@@ -8,6 +8,7 @@
 #include "RewindApi.h"
 #include "StringMath.h"
 
+// Gets the current thread position of the staticshape
 float getThreadPos(int staticshape)
 {
 	TGE::ShapeBase *s = static_cast<TGE::ShapeBase*>(TGE::Sim::findObject_int(staticshape));
@@ -17,6 +18,7 @@ float getThreadPos(int staticshape)
 	return 0;
 }
 
+// Same thing as above
 float getThreadPos(const char* staticshape)
 {
 	TGE::ShapeBase *s = static_cast<TGE::ShapeBase*>(TGE::Sim::findObject(staticshape));
@@ -26,25 +28,22 @@ float getThreadPos(const char* staticshape)
 	return 0;
 }
 
+// Gets the dynamic field value of an object
 const char* getField(TGE::SimObject* obj, const char* field)
 {
 	const char* name = TGE::StringTable->insert(field, false);
 	return (const_cast<TGE::SimObject*>(obj))->getDataField(name, NULL);
-
-	//Terrible way because ConsoleObject::getDataField() isnt working
-	//TGE::Con::evaluatef((std::string("$InternalField =") + obj->getIdString() + field + ";").c_str());
-	//return TGE::Con::getVariable("$InternalField");
 }
 
+// Sets the dynamic field value of an object
 void setField(TGE::SimObject* obj, const char* field, const char* value)
 {
 	const char* name = TGE::StringTable->insert(field, false);
 	const char* val = TGE::StringTable->insert(value, false);
 	const_cast<TGE::SimObject*>(obj)->setDataField(name, NULL, val);
-	//Terrible way because ConsoleObject::setDataField() isnt working
-	//TGE::Con::evaluatef((std::string(obj->getIdString()) + field + value + ';').c_str());
 }
 
+// Calls the hide function for an object
 void hide(TGE::SimObject* obj, int val)
 {
 	char buf[256];
@@ -52,6 +51,7 @@ void hide(TGE::SimObject* obj, int val)
 	TGE::Con::evaluatef(buf);
 }
 
+// Calls the isHidden function for an object
 bool getHidden(TGE::SimObject* obj)
 {
 	char buf[256];
@@ -60,6 +60,7 @@ bool getHidden(TGE::SimObject* obj)
 	return TGE::Con::getBoolVariable("$InternalField");
 }
 
+// Sets the path position of a pathedInterior, implementation copied from TGE source, cause apparently that works
 void setPathPosition(SimObjectId pathedInterior, int pos)
 {
 	DebugPrint("Entering setPathPosition");
@@ -106,6 +107,7 @@ void setPathPosition(SimObjectId pathedInterior, int pos)
 	DebugPrint("Leaving setPathPosition");
 }
 
+// Sets the target position of a pathedInterior, same reason as above
 void setTargetPosition(SimObjectId pathedInterior, int pos)
 {
 	DebugPrint("Entering setTargetPosition");
@@ -124,6 +126,7 @@ void setTargetPosition(SimObjectId pathedInterior, int pos)
 	DebugPrint("Leaving setTargetPosition");
 }
 
+// Calls the TorqueScript defined function of the same name
 void SetTrapdoorThreadPos(SimObjectId id, float pos,bool isclient)
 {
 	char buf[64];
@@ -131,11 +134,11 @@ void SetTrapdoorThreadPos(SimObjectId id, float pos,bool isclient)
 	TGE::Con::evaluatef(buf);
 }
 
+// Gets the powerup states at the moment
 std::vector<int> GetPowerupTimeStates()
 {
 	DebugPrint("Entering GetPowerupTimeStates");
 	TGE::NetConnection* LocalClientConnection = static_cast<TGE::NetConnection*>(TGE::Sim::findObject("LocalClientConnection"));
-	//TGE::Con::evaluatef("$ClientPlayer = LocalClientConnection.player;");
 	TGE::Marble* player = static_cast<TGE::Marble*>(TGE::Sim::findObject(getField(LocalClientConnection,"Player")));
 	std::vector<int> PowerupStates;
 	if (player != NULL)
@@ -154,6 +157,7 @@ std::vector<int> GetPowerupTimeStates()
 	return PowerupStates;	
 }
 
+// Sets the powerup states
 void SetPowerupTimeStates(std::vector<int> PowerupStates)
 {
 	DebugPrint("Entering SetPowerupTimeStates");
@@ -170,6 +174,7 @@ void SetPowerupTimeStates(std::vector<int> PowerupStates)
 	DebugPrint("Leaving SetPowerupTimeStates");
 }
 
+// Checks if an object can have Rewind implemented
 bool IsRewindableType(const char* type)
 {
 	if (strcmp(type, "StaticShape") == 0 || strcmp(type,"Trigger") == 0 || strcmp(type,"Item") == 0)
@@ -177,17 +182,13 @@ bool IsRewindableType(const char* type)
 	return false;
 }
 
+// Gets the state of everything in the MissionGroup
 void GetMissionState(TGE::SimGroup* group, MissionState* missionstate)
 {
 	DebugPrint("Entering GetMissionState");
 	for (int i = 0; i < group->getCount(); i++)
 	{
-//#ifdef WIN32
 		TGE::SimObject* obj = group->objectList[i];
-//#endif // WIN32
-//#ifdef __APPLE__
-//		TGE::SimObject* obj = group->getSimObjectList()->at(i);
-//#endif
 
 		const char* type = obj->getClassRep()->getClassName();
 		if (strcmp(type, "SimGroup") == 0)
@@ -196,6 +197,7 @@ void GetMissionState(TGE::SimGroup* group, MissionState* missionstate)
 		}
 		else
 		{
+			// Get the state of the pathedInterior
 			if (strcmp(type, "PathedInterior") == 0)
 			{
 				DebugPrint("Storing MPState");
@@ -212,6 +214,8 @@ void GetMissionState(TGE::SimGroup* group, MissionState* missionstate)
 				state.pathedInterior = static_cast<TGE::PathedInterior*>(obj);
 				missionstate->mpstates.push_back(state);
 			} //GetMPState
+
+			// Get the state of items
 			if (strcmp(type, "Item") == 0)
 			{
 				if (strcmp(getField(static_cast<TGE::GameBase*>(obj)->getDataBlock(), "className"), "Gem") == 0)
@@ -226,6 +230,7 @@ void GetMissionState(TGE::SimGroup* group, MissionState* missionstate)
 				}
 				if (strcmp(getField(static_cast<TGE::GameBase*>(obj)->getDataBlock(), "className"), "Gem") != 0 && strcmp(static_cast<TGE::GameBase*>(obj)->getDataBlock()->getName(), "TimeTravelItem") != 0 
 #ifdef MBP
+					// Theres easter eggs and shit
 					&& strcmp(static_cast<TGE::GameBase*>(obj)->getDataBlock()->getName(), "EasterEgg") != 0
 #endif
 					)
@@ -247,6 +252,7 @@ void GetMissionState(TGE::SimGroup* group, MissionState* missionstate)
 
 #endif //  MBP
 			}
+			// Get the sate of staticshapes
 			if (strcmp(type, "StaticShape") == 0)
 			{
 				if (strcmp(getField(static_cast<TGE::GameBase*>(obj)->getDataBlock(), "className"), "Explosive") == 0)
@@ -284,6 +290,7 @@ void GetMissionState(TGE::SimGroup* group, MissionState* missionstate)
 				}
 			}
 
+			// Finally we get the states of the user defined objects
 			if (IsRewindableType(type))
 			{
 				DebugPrint("Getting RewindableStates (SceneObject)");
@@ -300,9 +307,9 @@ void GetMissionState(TGE::SimGroup* group, MissionState* missionstate)
 					{
 						DebugPrint("Getting RewindableState for %s:%d", binding->BindingNamespace.c_str(), binding->getStorageType());
 
-						//RewindableState state(binding->BindingNamespace);
-
 						int storagetype = binding->getStorageType();
+
+						// Very hacky cause apparently the macros dont work on Mac build
 #ifdef WIN32
 #define StoreRewindableState(type1,type2) 	RewindableBinding<##type1##>* rewindable = static_cast<RewindableBinding<##type1##>*>(binding); \
 						RewindableState<##type1##> state(binding->BindingNamespace); \
@@ -373,12 +380,7 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 	DebugPrint("Entering SetMissionState");
 	for (int i = 0; i < group->getCount(); i++)
 	{
-//#ifdef WIN32
 		TGE::SimObject* obj = group->objectList[i];
-//#endif // WIN32
-//#ifdef __APPLE__
-//		TGE::SimObject* obj = group->getSimObjectList()->at(i);
-//#endif
 		const char* type = obj->getClassRep()->getClassName();
 		if (strcmp(type, "SimGroup") == 0)
 		{
@@ -515,7 +517,6 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 					{
 						DebugPrint("Setting Trapdoor Position %f", missionstate->trapdoorpos[0]);
 
-						//Set Position
 						if (missionstate->trapdoorpos[0] != previousstate->trapdoorpos[0])
 							SetTrapdoorThreadPos(obj->getId(), missionstate->trapdoorpos[0]);
 
@@ -523,13 +524,9 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 						previousstate->trapdoorpos.erase(previousstate->trapdoorpos.begin());
 
 						DebugPrint("Setting Trapdoor Direction %d", missionstate->trapdoordirs[0]);
-						//Set Direction
-						//if (missionstate->trapdoordirs[0] != previousstate->trapdoordirs[0])
-						//{
-							char buf[96];
-							sprintf(buf, "%d.setThreadDir(0,%d);%d.playThread(0);", obj->getId(), missionstate->trapdoordirs[0], obj->getId()); //too lazy to port updateThread
-							TGE::Con::evaluatef(buf);
-						//}
+						char buf[96];
+						sprintf(buf, "%d.setThreadDir(0,%d);%d.playThread(0);", obj->getId(), missionstate->trapdoordirs[0], obj->getId()); //too lazy to port updateThread
+						TGE::Con::evaluatef(buf);
 						missionstate->trapdoordirs.erase(missionstate->trapdoordirs.begin());
 						previousstate->trapdoordirs.erase(previousstate->trapdoordirs.begin());
 
@@ -910,7 +907,6 @@ void RewindFrame(Frame* f)
 		{
 			rewindDelta *= atof(TGE::Con::getVariable("$pref::Rewind::TimeScale"));
 			DebugPrint("Altered Delta %c", rewindDelta);
-			//rewindManager.pushFrame(GetCurrentFrame(atoi(getField(TGE::Sim::findObject("PlayGui"), "timeDelta"))));
 			framedata = rewindManager.getNextRewindFrame(rewindDelta);
 
 			if (framedata == NULL)
@@ -969,11 +965,6 @@ void RewindFrame(Frame* f)
 	player->setAngularVelocity(ClientMarble->getAngularVelocity());
 	player->setCameraYaw(ClientMarble->getCameraYaw());
 	player->setCameraPitch(ClientMarble->getCameraPitch());
-
-	//if (framedata->simTime != -1)
-	//	TGE::Sim::gCurrentTime = framedata->simTime;
-	//if (framedata->simTargetTime != -1)
-	//	TGE::Sim::gTargetTime = framedata->simTargetTime;
 
 	MissionState state;
 

@@ -97,15 +97,6 @@ ConsoleFunction(unregisterRewindable, void, 2, 2, "unregisterRewindable(string n
 		}
 	}
 
-	//for (auto& it = rewindManager.rewindableBindings.begin(); it < rewindManager.rewindableBindings.end(); it++)
-	//{
-	//	if (strcmp((*it)->BindingNamespace.c_str(), argv[1]) == 0)
-	//	{
-	//		rewindManager.rewindableBindings.erase(it);
-	//		return;
-	//	}
-	//}
-
 	DebugPrint("Entering unregisterRewindable()");
 }
 
@@ -143,13 +134,11 @@ ConsoleFunction(getWordDelim, const char*, 4, 4, "getWordDelim(str,delim,index)"
 		if (tokenindex == atoi(argv[3])) return token;
 	}
 	return "0";
-	//TGE::Con::printf("getworddelim(\"%s\",\"%s\",\"%s\")", argv[1], argv[2], argv[3]);
 
 }
 
 ConsoleFunction(getWordCountDelim, int, 3, 3, "getWordCountDelim(str,delim)")
 {
-	//TGE::Con::printf("getwordcountdelim(\"%s\",\"%s\")", argv[1], argv[2]);
 	char* token = strtok((char*)argv[1], argv[2]);
 	if (token == NULL) return 0;
 	int tokenindex = 0;
@@ -318,7 +307,7 @@ ConsoleFunction(spliceReplay, void, 2, 2, "spliceReplay(float ms)")
 // Extra Marble Physics Functions
 //It got too late when I figured that I could use ConsoleMethod instead for these functions and im too lazy to replace em.
 
-ConsoleMethod(ShapeBase,getCameraTransform, const char*, 3, 3, "getCameraTransform(pos)")
+ConsoleMethod(ShapeBase, getCameraTransform, const char*, 3, 3, "getCameraTransform(pos)")
 {
 	MatrixF mat;
 	float pos = atof(argv[2]);
@@ -368,54 +357,6 @@ ConsoleFunction(lockTransforms, void, 2, 2, "lockTransforms(bool lock)")
 	lockTransforms = atoi(argv[1]);
 }
 
-#ifdef _DEBUG
-ConsoleFunction(getForce, const char*, 3, 3, "getForce(GameBase obj, Point3F arg1)")
-{
-	TGE::ShapeBase* obj = static_cast<TGE::ShapeBase*>(TGE::Sim::findObject(argv[1]));
-	Point3F* retforce = new Point3F(0, 0, 0);
-	Point3F arg = StringMath::scan<Point3F>(argv[2]);
-	obj->getForce(arg, retforce);
-	return StringMath::print(*retforce);
-}
-
-ConsoleFunction(testDuctforces, void, 2, 2, "testDuctforces(GameBase obj)")
-{
-	TGE::ShapeBase* obj = static_cast<TGE::ShapeBase*>(TGE::Sim::findObject(argv[1]));
-	Point3F objpos = obj->getTransform().getPosition();
-	Point3F* retforce = new Point3F(0, 0, 0);
-	FILE* f;
-	f = fopen("benchmark.csv", "w");
-	fprintf(f, "pt.x,pt.y,pt.z,F.x,F.y,F.z\n");
-
-	for (int i = 1; i < 10; i++)
-	{
-		for (int j = 0; j < 37; j++)
-		{
-			float theta = (M_PI * j / 36);
-			Point3F pt = Point3F((float)i * mCos(theta), 0, (float)i * mSin(theta));
-			Point3F* retforce = new Point3F(0, 0, 0);
-			obj->getForce(objpos + pt, retforce);
-			fprintf(f, "%f,%f,%f,%f,%f,%f\n", pt.x, pt.y, pt.z, retforce->x, retforce->y, retforce->z);
-			delete retforce;
-		}
-	}
-
-	fclose(f);
-}
-ConsoleFunction(setTime, void, 2, 2, "setTime(time)")
-{
-	TGE::Sim::gCurrentTime = atoi(argv[1]);
-}
-ConsoleFunction(getTime, int, 1, 1, "getTime(time)")
-{
-	return TGE::Sim::gCurrentTime;
-}
-ConsoleFunction(getTargetTime, int, 1, 1, "getTargetTime(time)")
-{
-	return TGE::Sim::gTargetTime;
-}
-#endif
-
 TorqueOverrideMember(void, Marble::advancePhysics, (TGE::Marble* thisObj, const TGE::Move* move, U32 delta), origAdvPhysics)
 {
 
@@ -438,72 +379,6 @@ TorqueOverrideMember(void, Marble::advancePhysics, (TGE::Marble* thisObj, const 
 
 };
 
-#ifdef _DEBUG
-ConsoleFunction(setRadius, void, 3, 3, "setRadius(Marble m,float Radius")
-{
-	TGE::Marble *marble = static_cast<TGE::Marble*>(TGE::Sim::findObject(argv[1]));
-	float scale = atof(argv[2]);
-	marble->setCollisionRadius(scale);
-	marble->setScale(VectorF(scale, scale, scale));
-}
-
-ConsoleFunction(setMemValue, void, 4, 4, "setMemValue(SimbObject obj,int offset,int value)")
-{
-	TGE::SimObject *obj = TGE::Sim::findObject(argv[1]);
-	*reinterpret_cast<int*>(reinterpret_cast<uint32_t>(obj) + (atoi(argv[2]))) = atoi(argv[3]);
-}
-
-ConsoleFunction(setMemFloatValue, void, 4, 4, "setMemValue(SimbObject obj,int offset,float value)")
-{
-	TGE::SimObject *obj = TGE::Sim::findObject(argv[1]);
-	*reinterpret_cast<double*>(reinterpret_cast<uint32_t>(obj) + (atoi(argv[2]))) = atoi(argv[3]);
-}
-
-ConsoleFunction(setMemVectorValue, void, 4, 4, "setMemValue(SimbObject obj,int offset,point3D vec)")
-{
-	TGE::SimObject *obj = TGE::Sim::findObject(argv[1]);
-	*reinterpret_cast<Point3D*>(reinterpret_cast<uint32_t>(obj) + (atoi(argv[2]))) = StringMath::scan<Point3D>(argv[3]);
-}
-
-ConsoleFunction(getMemValue, int, 3, 3, "getMemValue(SimbObject obj,int offset)")
-{
-	TGE::SimObject *obj = TGE::Sim::findObject(argv[1]);
-	return *reinterpret_cast<int*>(reinterpret_cast<uint32_t>(obj) + (atoi(argv[2])));
-}
-
-ConsoleFunction(getMemPtrValue, int, 3, 3, "getMemPtrValue(SimbObject obj,int offset)")
-{
-	TGE::SimObject *obj = TGE::Sim::findObject(argv[1]);
-	return **reinterpret_cast<int**>(reinterpret_cast<uint32_t>(obj) + (atoi(argv[2])));
-}
-
-ConsoleFunction(getMemFloatValue, float, 3, 3, "getMemValue(SimbObject obj,int offset)")
-{
-	TGE::SimObject *obj = TGE::Sim::findObject(argv[1]);
-	return *reinterpret_cast<double*>(reinterpret_cast<uint32_t>(obj) + (atoi(argv[2])));
-}
-
-ConsoleFunction(getMemVectorValue, const char*, 3, 3, "getMemValue(SimbObject obj,int offset)")
-{
-	TGE::SimObject *obj = TGE::Sim::findObject(argv[1]);
-	return StringMath::print(*reinterpret_cast<Point3D*>(reinterpret_cast<uint32_t>(obj) + (atoi(argv[2]))));
-}
-
-ConsoleFunction(getMarblePtr, int, 2, 2, "getMarblePtr(Marble m)")
-{
-	TGE::Marble *marble = static_cast<TGE::Marble*>(TGE::Sim::findObject(argv[1]));
-	marble->dump();
-	return (int)marble;
-}
-
-ConsoleFunction(dumpSimObject, int, 2, 2, "dumpSimObject(SimObject obj)")
-{
-	TGE::SimObject *obj = TGE::Sim::findObject(argv[1]);
-	obj->dump();
-	return (int)obj;
-}
-#endif
-
 //---------------------------------------------------------------------------------------
 // Extra MP Functions
 ConsoleFunction(getPathPosition,float, 2, 2, "getPathPosition(PathedInterior pathedInterior)")
@@ -516,14 +391,6 @@ ConsoleFunction(getPathPosition,float, 2, 2, "getPathPosition(PathedInterior pat
 	else
 		return serverToClientPIMap.at(p->getId())->getPathPosition(); //The path position stored in client PathedInterior is more precise, so we just give this, this fixes the MP jitter bug
 
-	//TGE::PathedInterior* clientPI = serverToClientMap.at(p->getId());
-
-	//int target = p->getTargetPosition();
-	//double path = p->getPathPosition();
-	//if (target != -1 && target != -2)
-	//	path = target - path;
-
-	//return path;
 }
 
 ConsoleFunction(setTargetPosition, void, 3, 3, "setTargetPosition(PathedInterior pathedInterior,int target)")
@@ -609,10 +476,8 @@ TorqueOverrideMember(void, PathedInterior::processTick, (TGE::PathedInterior* th
 	//why the heck does torque even do processTick in 32ms intervals
 	int curtarget = thisObj->getTargetPosition();
 	double curpath = thisObj->getPathPosition();
-	//TGE::Con::printf("%s: %s %s", thisObj->getIdString(), curtarget, curpath);
 	if (physicsOn && !lockTransforms)
 	{
-		//origprocTick(thisObj, move);
 		PI_ProcessTick(thisObj, move);
 	}
 	if (lockTransforms)
@@ -654,63 +519,6 @@ void PI_ProcessTick(TGE::PathedInterior* PI, const TGE::Move* move)
 			}
 		}
 	}
-
-	//if (PI->isServerObject())
-	//{
-	//	TGE::PathedInterior* p;
-	//	std::map<int, TGE::PathedInterior*>::iterator it = serverToClientPIMap.find(PI->getId());
-	//	if (it == serverToClientPIMap.end())
-	//		p = PI;
-	//	else
-	//		p = serverToClientPIMap.at(PI->getId());
-
-	//	PI->setPathPosition(p->getPathPosition());
-	//	PI->setTargetPosition(p->getTargetPosition());
-
-
-	//	S32 timeMs = 32;
-	//	if (PI->getPathPosition() != PI->getTargetPosition())
-	//	{
-	//		S32 delta = 0;
-	//		if (PI->getTargetPosition() < 0)
-	//		{
-	//			if (PI->getTargetPosition() == -1)
-	//				delta = timeMs;
-	//			else if (PI->getTargetPosition() == -2)
-	//				delta = -timeMs;
-	//			PI->setPathPosition(PI->getPathPosition() + delta);
-	//			U32 totalTime = TGE::gClientPathManager->getPathTotalTime(PI->getPathKey2());
-	//			while (PI->getPathPosition() >= totalTime)
-	//				PI->setPathPosition(PI->getPathPosition() - totalTime);;
-	//			while (PI->getPathPosition() < 0)
-	//				PI->setPathPosition(PI->getPathPosition() + totalTime);;
-	//		}
-	//		else
-	//		{
-	//			int dir = 0;
-	//			if (PI->getTargetPosition() > PI->getPathPosition())
-	//				dir = 1;
-	//			if (PI->getTargetPosition() < PI->getPathPosition())
-	//				dir = -1;
-
-	//			if (dir == 1)
-	//				delta = timeMs;
-
-	//			if (dir == -1)
-	//				delta = -timeMs;
-
-	//			float pos = PI->getPathPosition() + delta;
-
-	//			if (dir == 1 && pos > PI->getTargetPosition())
-	//				pos = PI->getTargetPosition();
-
-	//			if (dir == -1 && pos < PI->getTargetPosition())
-	//				pos = PI->getTargetPosition();
-
-	//			PI->setPathPosition(pos);
-	//		}
-	//	}
-	//}
 }
 
 TorqueOverrideMember(U32, PathedInterior::packUpdate, (TGE::PathedInterior* thisObj, TGE::NetConnection* con, U32 mask, TGE::BitStream* stream), origPI_PackUpdate)
@@ -759,10 +567,7 @@ ConsoleFunction(getPathPositionF32, float, 2, 2, "getPathPositionF32(PathedInter
 {
 	TGE::PathedInterior* p = static_cast<TGE::PathedInterior*>(TGE::Sim::findObject(argv[1]));
 
-	//int target = p->getTargetPosition();
 	float path = p->getPathPositionF32();
-	//if (target != -1 && target != -2)
-	//	path = target - path;
 
 	return path;
 }
@@ -787,9 +592,6 @@ ConsoleFunction(setThreadPos, void, 3, 3, "setThreadPos(StaticShape s,float pos)
 	if (t != 0)
 	{
 		TGE::TSShapeInstance *ts = s->getTSShapeInstance(); 
-		//TGE::Con::printf("%d",ts);
-		//TGE::Con::printf("%d", t);
-		//ts->setPos(t, atof(argv[2]));
 		t->setPos(atof(argv[2])); //This is a setter function, the offset of pos is 0xC on windows, probably the same in mac
 		ts->setPos(t, atof(argv[2])); //Now this looks like a setter function but it isnt, its the TSShapeInstance::setPos member function, also found being reference somewhere
 		//Its a setter function that sets ShapeBase::mScriptThread[0].forward, 
@@ -821,38 +623,10 @@ TorqueOverrideMember(void, TSShapeInstance::advanceTime, (TGE::TSShapeInstance* 
 	}
 }
 
-//TorqueOverrideMember(void, PEEngine::updateSingleParticle, (TGE::PEEngine* thisObj, TGE::Particle* particle, TGE::ParticleEmitter& emitter, const U32 ms), origPEAdvanceTime)
-//{
-//
-//	bool rewinding = TGE::Con::getIntVariable("$rewinding") == 1 ? true : false;
-//	if (rewinding)
-//	{
-//		//float dms = (float)ms / 1000 * 2;
-//		//particle->pos -= (particle->vel * dms) + ((particle->acc / 2) * (dms * dms));
-//		//particle->vel -= particle->acc * dms;
-//		origPEAdvanceTime(thisObj, particle, emitter, -10);
-//		// origPEAdvanceTime(thisObj, particle, emitter, ms);
-//	}	
-//	else
-//	{
-//		bool isReplay = TGE::Con::getIntVariable("$Rewind::IsReplay") == 1 ? true : false;
-//		if (isReplay)
-//		{
-//			origPEAdvanceTime(thisObj, particle, emitter, replayTimeDelta / 1000);
-//		}
-//		else
-//			origPEAdvanceTime(thisObj, particle, emitter, ms);
-//	}
-//}
-
 const char* getField2(TGE::SimObject* obj, const char* field)
 {
 	const char* name = TGE::StringTable->insert(field, false);
 	return (const_cast<TGE::SimObject*>(obj))->getDataField(name, NULL);
-
-	//Terrible way because ConsoleObject::getDataField() isnt working
-	//TGE::Con::evaluatef((std::string("$InternalField =") + obj->getIdString() + field + ";").c_str());
-	//return TGE::Con::getVariable("$InternalField");
 }
 
 TorqueOverrideMember(void, Item::advanceTime, (TGE::Item* thisObj, F32 dt), origAdvanceTime)
