@@ -14,4 +14,4 @@ deploy:
   file: ./*
   skip_cleanup: true
   on:
-	tags: true
+    tags: true
