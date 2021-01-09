@@ -39,6 +39,8 @@ U32 timeDelta = 0;
 
 F32 replayTimeDelta = 0;
 
+int debugIndent = 0;
+
 //---------------------------------------------------------------------------------------
 // API Functions
 
@@ -46,7 +48,7 @@ ConsoleFunction(registerRewindable, void, 4, 4, "registerRewindable(string names
 {
 	int storagetype = atoi(argv[3]);
 	
-	DebugPrint("Entering registerRewindable(%s,%s,%s)", argv[1], argv[2], argv[3]);
+	DebugPush("Entering registerRewindable(%s,%s,%s)", argv[1], argv[2], argv[3]);
 
 	if (storagetype == 0)
 	{
@@ -72,12 +74,12 @@ ConsoleFunction(registerRewindable, void, 4, 4, "registerRewindable(string names
 		rewindManager.rewindableBindings.push_back(new RewindableBinding<std::string>(binding));
 		ghostReplayManager.rewindableBindings.push_back(new RewindableBinding<std::string>(binding));
 	}
-	DebugPrint("Leaving registerRewindable()");
+	DebugPop("Leaving registerRewindable()");
 }
 
 ConsoleFunction(unregisterRewindable, void, 2, 2, "unregisterRewindable(string namespace)")
 {
-	DebugPrint("Entering unregisterRewindable(%s)", argv[1]);
+	DebugPush("Entering unregisterRewindable(%s)", argv[1]);
 
 	for (size_t i = 0; i < rewindManager.rewindableBindings.size(); i++)
 	{
@@ -97,7 +99,7 @@ ConsoleFunction(unregisterRewindable, void, 2, 2, "unregisterRewindable(string n
 		}
 	}
 
-	DebugPrint("Entering unregisterRewindable()");
+	DebugPush("Entering unregisterRewindable()");
 }
 
 ConsoleFunction(callOnRewindEvent, void, 1, 1, "callOnRewindEvent()")
@@ -107,10 +109,10 @@ ConsoleFunction(callOnRewindEvent, void, 1, 1, "callOnRewindEvent()")
 
 ConsoleFunction(setGame, void, 2, 2, "setGame(string game)")
 {
-	DebugPrint("Entering setGame(%s)", argv[1]);
+	DebugPush("Entering setGame(%s)", argv[1]);
 	rewindManager.game = std::string(argv[1]);
 	ghostReplayManager.game = std::string(argv[1]);
-	DebugPrint("Leaving setGame()");
+	DebugPop("Leaving setGame()");
 }
 
 //---------------------------------------------------------------------------------------
@@ -167,26 +169,26 @@ ConsoleFunction(combineAngAxis, const char*, 3, 3, "combineAngAxis(AngAxisF lhs,
 // Rewind / Replay Functions
 ConsoleFunction(setReplayPath, void, 2, 2, "setReplayPath(string path)")
 {
-	DebugPrint("Entering setReplayPath");
+	DebugPush("Entering setReplayPath");
 	rewindManager.replayPath = std::string(argv[1]);
-	DebugPrint("Leaving setReplayPath");
+	DebugPop("Leaving setReplayPath");
 }
 
 ConsoleFunction(setReplayMission, void, 2, 2, "setReplayMission(string path)")
 {
-	DebugPrint("Entering setReplayMission");
+	DebugPush("Entering setReplayMission");
 	rewindManager.replayMission = std::string(argv[1]);
 	// Terrible place for this to be in, but this function is just called once per mission so /shrug
 	rewindManager.clearSaveStates();
-	DebugPrint("Leaving setReplayMission");
+	DebugPop("Leaving setReplayMission");
 }
 
 ConsoleFunction(getReplayPath, const char *, 1, 1, "getReplayPath()")
 {
-	DebugPrint("Entering getReplayPath");
+	DebugPush("Entering getReplayPath");
 	char* retbuffer = TGE::Con::getReturnBuffer(1024);
 	strcpy(retbuffer, rewindManager.replayPath.c_str());
-	DebugPrint("Leaving getReplayPath");
+	DebugPop("Leaving getReplayPath");
 	return retbuffer;
 }
 

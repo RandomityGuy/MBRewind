@@ -395,7 +395,7 @@ int RewindManager::getFrameCount()
 
 void RewindManager::save(std::string path)
 {
-	DebugPrint("Entering RewindManager::save");
+	DebugPush("Entering RewindManager::save");
 	if (Frames.size() != 0) //We dun wanna save empty files
 		{
 			FILE *fMain;
@@ -466,21 +466,22 @@ void RewindManager::save(std::string path)
 
 				Frames.pop_back();
 			}
-			auto sz = compressBound(m.length() + 1);
+			auto size = m.length();
+			auto sz = compressBound(size + 1);
 			Bytef* mem = new Bytef[sz + 1];
 			compress(mem, &sz, m.getBuffer(), m.length());
 			TGE::Con::printf("Completed Compression:%d bytes", sz);
-			fwrite(&sz, sizeof(unsigned long), 1, fMain); //We gotta write the size of uncompressed replay so that we can allocate enough memory to uncompress the compressed replay
+			fwrite(&size, sizeof(unsigned long), 1, fMain); //We gotta write the size of uncompressed replay so that we can allocate enough memory to uncompress the compressed replay
 			fwrite(mem, 1, sz, fMain);
 			fclose(fMain); //DONE
 			delete[] mem;
 		}
-	DebugPrint("Leaving RewindManager::save");
+	DebugPop("Leaving RewindManager::save");
 }
 
 std::string RewindManager::load(std::string path,bool isGhost)
 {
-	DebugPrint("Entering RewindManager::load(%s,%d)", path.c_str(), isGhost);
+	DebugPush("Entering RewindManager::load(%s,%d)", path.c_str(), isGhost);
 	Frames.clear();
 	this->totalTime = 0;
 
@@ -722,13 +723,13 @@ std::string RewindManager::load(std::string path,bool isGhost)
 	setFrameElapsedTimes();
 	std::reverse(Frames.begin(), Frames.end());
 	setUpFrameStreaming();
-	DebugPrint("Leaving RewindManager::load");
+	DebugPop("Leaving RewindManager::load");
 	return replayMission.c_str();
 }
 
 ReplayInfo RewindManager::analyze(std::string path)
 {
-	DebugPrint("Entering RewindManager::analyzze(%s)", path.c_str());
+	DebugPush("Entering RewindManager::analyzze(%s)", path.c_str());
 	Frames.clear();
 	this->totalTime = 0;
 
@@ -911,13 +912,13 @@ ReplayInfo RewindManager::analyze(std::string path)
 		}
 
 
-	DebugPrint("Leaving RewindManager::analyze");
+	DebugPop("Leaving RewindManager::analyze");
 	return info;
 }
 
 void RewindManager::clear(bool write)
 {
-	DebugPrint("Entering RewindManager::clear(%d)", write);
+	DebugPush("Entering RewindManager::clear(%d)", write);
 	if (write)
 	{
 		this->save(replayPath);
@@ -925,13 +926,13 @@ void RewindManager::clear(bool write)
 	this->Frames.clear();
 	this->pathedInteriors = NULL;
 	this->totalTime = 0;
-	DebugPrint("Leaving RewindManager::clear");
+	DebugPop("Leaving RewindManager::clear");
 }
 
 template<typename T>
 RewindableState<T> RewindManager::InterpolateRewindableState(RewindableState<T> one, RewindableState<T> two, float ratio, float delta)
 {
-	DebugPrint("Entering RewindManager::InterpolateRewindableState(%s,%f,%f)", one.bindingnamespace.c_str(), "", ratio, delta);
+	DebugPush("Entering RewindManager::InterpolateRewindableState(%s,%f,%f)", one.bindingnamespace.c_str(), "", ratio, delta);
 	RewindableBindingBase* binding = NULL;
 	for (int i = 0; i < this->rewindableBindings.size(); i++)
 	{
@@ -945,7 +946,6 @@ RewindableState<T> RewindManager::InterpolateRewindableState(RewindableState<T> 
 	if (binding == NULL)
 	{
 		TGE::Con::errorf("RewindManager::InterpolateRewindableState CANNOT INTERPOLATE FOR NAMESPACE %s", one.bindingnamespace.c_str());
-		return;
 	}
 
 	int type = binding->getStorageType();
@@ -954,7 +954,7 @@ RewindableState<T> RewindManager::InterpolateRewindableState(RewindableState<T> 
 
 	RewindableBinding<T>* b = static_cast<RewindableBinding<T>*>(binding);
 	rs.value = b->interpolateState(one.value, two.value, ratio, delta);
-	DebugPrint("Leaving RewindManager::InterpolateRewindableState()");
+	DebugPop("Leaving RewindManager::InterpolateRewindableState()");
 	return rs;
 
 }
@@ -962,7 +962,7 @@ RewindableState<T> RewindManager::InterpolateRewindableState(RewindableState<T> 
 Frame RewindManager::interpolateFrame(Frame one,Frame two,float ratio,float delta)
 {
 
-	DebugPrint("Entering RewindManager::interpolateFrame(one,two,%f,%f)", ratio,delta);
+	DebugPush("Entering RewindManager::interpolateFrame(one,two,%f,%f)", ratio,delta);
 	Frame f = Frame();
 	f.deltaMs = delta;
 
@@ -1062,14 +1062,14 @@ Frame RewindManager::interpolateFrame(Frame one,Frame two,float ratio,float delt
 	for (int i = 0; i < one.rewindableSOStringStates.size(); i++)
 		f.rewindableSOStringStates.push_back(InterpolateRewindableState(one.rewindableSOStringStates[i], two.rewindableSOStringStates[i], ratio, delta));
 #endif
-	DebugPrint("Leaving RewindManager::interpolateFrame");
+	DebugPop("Leaving RewindManager::interpolateFrame");
 	return f;
 
 }
 
 Frame* RewindManager::getRealtimeFrameAtMs(float ms)
 {
-	DebugPrint("Entering RewindManager::getRealtimeFrameAtMs(%f)", ms);
+	DebugPush("Entering RewindManager::getRealtimeFrameAtMs(%f)", ms);
 	//basically do a binary search
 
 	if (ms < Frames[0].ms)
@@ -1116,13 +1116,13 @@ Frame* RewindManager::getRealtimeFrameAtMs(float ms)
 	}
 
 	double ratio = (double)(ms - Frames[index0].ms) / (double)(Frames[index1].ms - Frames[index0].ms);
-	DebugPrint("Leaving RewindManager::getRealtimeFrameAtMs");
+	DebugPop("Leaving RewindManager::getRealtimeFrameAtMs");
 	return new Frame(interpolateFrame(Frames[index0], Frames[index1], ratio, ms));
 }
 
 Frame* RewindManager::getFrameAtElapsedMs(float ms)
 {
-	DebugPrint("Entering RewindManager::getFrameAtElapsedMs(%f)",ms);
+	DebugPush("Entering RewindManager::getFrameAtElapsedMs(%f)",ms);
 	// binary search version cause apparently the old algorithm consistently breaks while
 	// scrubbing very specific replays, i have yet to find why it doesnt work for those and what causes those replays in the first place
 	// 8/1/2021: bruh fuck that, lets all forget the garbage that was the old algorithm
@@ -1170,13 +1170,13 @@ Frame* RewindManager::getFrameAtElapsedMs(float ms)
 	}
 
 	double ratio = (double)(ms - Frames[index0].elapsedTime) / (double)(Frames[index1].elapsedTime - Frames[index0].elapsedTime);
-	DebugPrint("Leaving RewindManager::getFrameAtElapsedMs");
+	DebugPop("Leaving RewindManager::getFrameAtElapsedMs");
 	return new Frame(interpolateFrame(Frames[index0], Frames[index1], ratio, ms));
 }
 
 Frame* RewindManager::getFrameAtMs(float ms,int index = -1,bool useElapsed)
 {
-	DebugPrint("Entering RewindManager::getFrameAtMs(%f,%d,%d)",ms,index,useElapsed);
+	DebugPush("Entering RewindManager::getFrameAtMs(%f,%d,%d)",ms,index,useElapsed);
 	if (ms < 0) return NULL;
 
 	if (index == -1) index = Frames.size() - 1;
@@ -1186,7 +1186,7 @@ Frame* RewindManager::getFrameAtMs(float ms,int index = -1,bool useElapsed)
 	{
 		if (ms < Frames.back().elapsedTime)
 		{
-			DebugPrint("Leaving RewindManager::getFrameAtMs");
+			DebugPop("Leaving RewindManager::getFrameAtMs");
 			return new Frame(Frames.back());
 		}
 	}
@@ -1203,7 +1203,7 @@ Frame* RewindManager::getFrameAtMs(float ms,int index = -1,bool useElapsed)
 
 		if (ms < Frames.back().ms)
 		{
-			DebugPrint("Leaving RewindManager::getFrameAtMs");
+			DebugPop("Leaving RewindManager::getFrameAtMs");
 			return new Frame(Frames.back());
 		}
 	}
@@ -1216,7 +1216,7 @@ Frame* RewindManager::getFrameAtMs(float ms,int index = -1,bool useElapsed)
 			if (f.elapsedTime > ms)
 			{
 				double ratio = (float)((f.deltaMs - (f.elapsedTime - ms))) / (float)f.deltaMs;
-				DebugPrint("Leaving RewindManager::getFrameAtMs");
+				DebugPop("Leaving RewindManager::getFrameAtMs");
 				return new Frame(interpolateFrame(Frames[i + 1], f, ratio, ms));
 			}
 		}
@@ -1227,19 +1227,19 @@ Frame* RewindManager::getFrameAtMs(float ms,int index = -1,bool useElapsed)
 				double ratio = (float)((f.deltaMs - (f.ms - ms))) / (float)f.deltaMs;
 				currentIndex = i;
 				streamTimePosition = ms;
-				DebugPrint("Leaving RewindManager::getFrameAtMs");
+				DebugPop("Leaving RewindManager::getFrameAtMs");
 				return new Frame(interpolateFrame(Frames[i + 1], f, ratio, ms));
 			}
 		}
 	}
-	DebugPrint("Leaving RewindManager::getFrameAtMs");
+	DebugPop("Leaving RewindManager::getFrameAtMs");
 	return NULL;
 
 }
 
 Frame* RewindManager::getNextRewindFrame(float delta)
 {
-	DebugPrint("Entering RewindManager::getNextRewindFrame(%f)", delta);
+	DebugPush("Entering RewindManager::getNextRewindFrame(%f)", delta);
 	if (delta < 0) return NULL;
 
 	if (Frames.size() == 0) return NULL;
@@ -1256,7 +1256,7 @@ Frame* RewindManager::getNextRewindFrame(float delta)
 
 			Frames.push_back(interpolated);
 
-			DebugPrint("Leaving RewindManager::getNextRewindFrame");
+			DebugPop("Leaving RewindManager::getNextRewindFrame");
 			return new Frame(interpolated);
 		}
 		else
@@ -1288,7 +1288,7 @@ Frame* RewindManager::getNextRewindFrame(float delta)
 				Frame interpolated = interpolateFrame(first, lastframe, ((float)delta) / ((float)deltaAccumulator), deltaAccumulator - delta);
 
 				Frames.push_back(interpolated);
-				DebugPrint("Leaving RewindManager::getNextRewindFrame");
+				DebugPop("Leaving RewindManager::getNextRewindFrame");
 				return new Frame(interpolated);
 			}
 			else
@@ -1296,7 +1296,7 @@ Frame* RewindManager::getNextRewindFrame(float delta)
 				Frame interpolated = interpolateFrame(first, midframe, ((float)delta) / ((float)deltaAccumulator), deltaAccumulator - delta);
 
 				Frames.push_back(interpolated);
-				DebugPrint("Leaving RewindManager::getNextRewindFrame");
+				DebugPop("Leaving RewindManager::getNextRewindFrame");
 				return new Frame(interpolated);
 			}
 
@@ -1306,15 +1306,15 @@ Frame* RewindManager::getNextRewindFrame(float delta)
 	{
 		Frame ret = Frames.back();
 		Frames.pop_back();
-		DebugPrint("Leaving RewindManager::getNextRewindFrame");
+		DebugPop("Leaving RewindManager::getNextRewindFrame");
 		return new Frame(ret);
 	}
-	DebugPrint("Leaving RewindManager::getNextRewindFrame");
+	DebugPop("Leaving RewindManager::getNextRewindFrame");
 }
 
 Frame* RewindManager::getNextFrame(float delta)
 {
-	DebugPrint("Entering RewindManager::getNextFrame(%f)", delta);
+	DebugPush("Entering RewindManager::getNextFrame(%f)", delta);
 	streamTimePosition += delta;
 
 	if (streamTimePosition < 0) streamTimePosition = 0;
@@ -1327,13 +1327,13 @@ Frame* RewindManager::getNextFrame(float delta)
 
 	Frame* f = new Frame(*testF);
 	
-	DebugPrint("Leaving RewindManager::getNextFrame");
+	DebugPop("Leaving RewindManager::getNextFrame");
 	return f;
 }
 
 Frame* RewindManager::getNextNonElapsedFrame(float delta)
 {
-	DebugPrint("Entering RewindManager::getNextNonElpasedFrame(%f)", delta);
+	DebugPush("Entering RewindManager::getNextNonElpasedFrame(%f)", delta);
 	streamTimePosition += delta;
 
 	if (streamTimePosition < 0) streamTimePosition = 0;
@@ -1365,39 +1365,40 @@ Frame* RewindManager::getNextNonElapsedFrame(float delta)
 		}
 	}
 
-	DebugPrint("Leaving RewindManager::getNextNonElapsedFrame");
+	DebugPop("Leaving RewindManager::getNextNonElapsedFrame");
 	return f;
 }
 
 int RewindManager::getSavedStateCount()
 {
-	DebugPrint("Entering and Leaving RewindManager::getSavedStateCount()");
+	DebugPush("Entering and Leaving RewindManager::getSavedStateCount()");
 	return SaveStates.size();
 }
 
 void RewindManager::clearSaveStates()
 {
-	DebugPrint("Entering RewindManager::clearSaveStates");
+	DebugPush("Entering RewindManager::clearSaveStates");
 	SaveStates.clear();
-	DebugPrint("Leaving RewindManager::clearSaveStates");
+	DebugPop("Leaving RewindManager::clearSaveStates");
 }
 
 void RewindManager::saveState()
 {
-	DebugPrint("Entering RewindManager::saveState");
+	DebugPush("Entering RewindManager::saveState");
 	SaveStates.push_back(Frames);
-	DebugPrint("Leaving RewindManager::saveState");
+	DebugPop("Leaving RewindManager::saveState");
 }
 
 void RewindManager::loadState(int index)
 {
-	DebugPrint("Entering RewindManager::loadState");
+	DebugPush("Entering RewindManager::loadState");
 	Frames = SaveStates[index];
-	DebugPrint("Leaving RewindManager::loadState");
+	DebugPop("Leaving RewindManager::loadState");
 }
 
 void RewindManager::spliceReplayFromMs(float ms)
 {
+	DebugPush("Entering RewindManager::spliceReplayFromMs");
 	std::vector<Frame> newFrames;
 	Frame* atMs = this->getFrameAtElapsedMs(ms);
 	for (auto& frame : Frames)
@@ -1410,4 +1411,5 @@ void RewindManager::spliceReplayFromMs(float ms)
 	if (atMs != NULL)
 		newFrames.push_back(*atMs);
 	Frames = newFrames;
+	DebugPop("Leaving RewindManager::spliceReplayFromMs");
 }

@@ -7,7 +7,30 @@ template<typename... Args>
 void DebugPrint(const char* printdata,Args... args)
 {
 	if (TGE::Con::getIntVariable("$Rewind::DebugInfo") == 1)
-		TGE::Con::printf(printdata,args...);
+	{
+		std::string out;
+		extern int debugIndent;
+		for (int i = 0; i < debugIndent; i++)
+			out += std::string("  ");
+		out += std::string(printdata);
+		TGE::Con::printf(out.c_str(), args...);
+	}
+}
+
+template<typename... Args>
+void DebugPush(const char* printdata, Args... args)
+{
+	extern int debugIndent;
+	debugIndent++;
+	DebugPrint(printdata, args...);
+}
+
+template<typename... Args>
+void DebugPop(const char* printdata, Args... args)
+{
+	extern int debugIndent;
+	debugIndent--;
+	DebugPrint(printdata, args...);
 }
 
 struct ReplayInfo

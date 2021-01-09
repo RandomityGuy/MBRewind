@@ -63,7 +63,7 @@ bool getHidden(TGE::SimObject* obj)
 // Sets the path position of a pathedInterior, implementation copied from TGE source, cause apparently that works
 void setPathPosition(SimObjectId pathedInterior, int pos)
 {
-	DebugPrint("Entering setPathPosition");
+	DebugPush("Entering setPathPosition");
 	TGE::PathedInterior *pServerd = static_cast<TGE::PathedInterior*>(TGE::Sim::findObject_int(pathedInterior));
 
 	TGE::PathedInterior *p = NULL;
@@ -104,13 +104,13 @@ void setPathPosition(SimObjectId pathedInterior, int pos)
 	mat.setColumn(3, pathPosPoint + p->getOffset());
 	p->setTransform(mat);
 	p->setMaskBits(0x8 | 0x10);
-	DebugPrint("Leaving setPathPosition");
+	DebugPop("Leaving setPathPosition");
 }
 
 // Sets the target position of a pathedInterior, same reason as above
 void setTargetPosition(SimObjectId pathedInterior, int pos)
 {
-	DebugPrint("Entering setTargetPosition");
+	DebugPush("Entering setTargetPosition");
 	TGE::PathedInterior* pServerd = static_cast<TGE::PathedInterior*>(TGE::Sim::findObject_int(pathedInterior));
 
 	TGE::PathedInterior* p = NULL;
@@ -123,7 +123,7 @@ void setTargetPosition(SimObjectId pathedInterior, int pos)
 
 	pServerd->setTargetPosition(pos);
 	p->setTargetPosition(pos);
-	DebugPrint("Leaving setTargetPosition");
+	DebugPop("Leaving setTargetPosition");
 }
 
 // Calls the TorqueScript defined function of the same name
@@ -137,7 +137,7 @@ void SetTrapdoorThreadPos(SimObjectId id, float pos,bool isclient)
 // Gets the powerup states at the moment
 std::vector<int> GetPowerupTimeStates()
 {
-	DebugPrint("Entering GetPowerupTimeStates");
+	DebugPush("Entering GetPowerupTimeStates");
 	TGE::NetConnection* LocalClientConnection = static_cast<TGE::NetConnection*>(TGE::Sim::findObject("LocalClientConnection"));
 	TGE::Marble* player = static_cast<TGE::Marble*>(TGE::Sim::findObject(getField(LocalClientConnection,"Player")));
 	std::vector<int> PowerupStates;
@@ -153,14 +153,14 @@ std::vector<int> GetPowerupTimeStates()
 		PowerupStates.push_back(0);
 		PowerupStates.push_back(0);
 	}
-	DebugPrint("Leaving GetPowerupTimeStates");
+	DebugPop("Leaving GetPowerupTimeStates");
 	return PowerupStates;	
 }
 
 // Sets the powerup states
 void SetPowerupTimeStates(std::vector<int> PowerupStates)
 {
-	DebugPrint("Entering SetPowerupTimeStates");
+	DebugPush("Entering SetPowerupTimeStates");
 	if (PowerupStates.size() != 3)
 	{
 		PowerupStates.clear();
@@ -171,7 +171,7 @@ void SetPowerupTimeStates(std::vector<int> PowerupStates)
 	char buffer[256];
 	sprintf(buffer, "SuperBounceItem::CustomOnUse(LocalClientConnection.player,%d);ShockAbsorberItem::CustomOnUse(LocalClientConnection.player,%d);HelicopterItem::CustomOnUse(LocalClientConnection.player,%d);", PowerupStates[0], PowerupStates[1], PowerupStates[2]);
 	TGE::Con::evaluatef(buffer);
-	DebugPrint("Leaving SetPowerupTimeStates");
+	DebugPop("Leaving SetPowerupTimeStates");
 }
 
 // Checks if an object can have Rewind implemented
@@ -185,7 +185,7 @@ bool IsRewindableType(const char* type)
 // Gets the state of everything in the MissionGroup
 void GetMissionState(TGE::SimGroup* group, MissionState* missionstate)
 {
-	DebugPrint("Entering GetMissionState");
+	DebugPush("Entering GetMissionState");
 	for (int i = 0; i < group->getCount(); i++)
 	{
 		TGE::SimObject* obj = group->objectList[i];
@@ -368,16 +368,16 @@ void GetMissionState(TGE::SimGroup* group, MissionState* missionstate)
 					}
 				}
 
-				DebugPrint("Leaving Getting RewindableStates");
+				DebugPop("Leaving Getting RewindableStates");
 			}
 		}
 	}
-	DebugPrint("Leaving GetMissionState");
+	DebugPop("Leaving GetMissionState");
 }
 
 void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionState* previousstate)
 {
-	DebugPrint("Entering SetMissionState");
+	DebugPush("Entering SetMissionState");
 	for (int i = 0; i < group->getCount(); i++)
 	{
 		TGE::SimObject* obj = group->objectList[i];
@@ -642,19 +642,19 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 						}
 #endif
 
-						DebugPrint("Leaving Set RewindableState");
+						DebugPop("Leaving Set RewindableState");
 					}
 				}
 			}
 
 		}
 	}
-	DebugPrint("Leaving SetMissionState");
+	DebugPop("Leaving SetMissionState");
 }
 
 void SetUpPathedInteriors(TGE::SimGroup* group, std::vector<TGE::PathedInterior*>* pi)
 {
-	DebugPrint("Entering SetUpPathedInteriors");
+	DebugPush("Entering SetUpPathedInteriors");
 	for (int i = 0; i < group->getCount(); i++)
 	{
 
@@ -683,14 +683,14 @@ void SetUpPathedInteriors(TGE::SimGroup* group, std::vector<TGE::PathedInterior*
 			}
 		}
 	}
-	DebugPrint("Leaving SetUpPathedInteriors");
+	DebugPop("Leaving SetUpPathedInteriors");
 }
 
 #ifdef MBP
 
 CheckpointState GetCheckpointState(TGE::Marble* player)
 {
-	DebugPrint("Entering GetCheckpointState");
+	DebugPush("Entering GetCheckpointState");
 	CheckpointState cs;
 	cs.Obj = std::string(getField(player, "checkPoint"));
 	cs.gemCount = atoi(getField(player, "checkPointGemCount"));
@@ -699,14 +699,14 @@ CheckpointState GetCheckpointState(TGE::Marble* player)
 	cs.gravity = std::string(getField(player, "checkPointGravity"));
 	cs.respawnCounter = TGE::Con::getIntVariable("$respawnCounter");
 	cs.respawnOffset = std::string(getField(player, "checkPointRespawnOffset"));
-	DebugPrint("Leaving GetCheckpointState");
+	DebugPop("Leaving GetCheckpointState");
 
 	return cs;
 }
 
 void SetCheckpointState(TGE::Marble* player, CheckpointState cs)
 {
-	DebugPrint("Entering GetCheckpointState");
+	DebugPush("Entering GetCheckpointState");
 	setField(player, "checkPoint", cs.Obj.c_str());
 	setField(player, "checkPointGemCount", StringMath::print(cs.gemCount));
 	setField(player, "checkPointGemStates", cs.gemStates.c_str());
@@ -714,13 +714,14 @@ void SetCheckpointState(TGE::Marble* player, CheckpointState cs)
 	setField(player, "checkPointGravity", cs.gravity.c_str());
 	TGE::Con::setIntVariable("$respawnCounter", cs.respawnCounter);
 	setField(player, "checkPointRespawnOffset", cs.respawnOffset.c_str());
-	DebugPrint("Leaving GetCheckpointState");
+	DebugPop("Leaving GetCheckpointState");
 }
 
 #endif
 
 Frame GetCurrentFrame(int ms)
 {
+	DebugPush("Entering GetCurrentFrmae");
 	TGE::NetConnection* LocalClientConnection = static_cast<TGE::NetConnection*>(TGE::Sim::findObject("LocalClientConnection"));
 	TGE::Marble* player = static_cast<TGE::Marble*>(TGE::Sim::findObject(getField(LocalClientConnection, "Player")));
 	TGE::SimGroup* MissionGroup = static_cast<TGE::SimGroup*>(TGE::Sim::findObject("MissionGroup"));
@@ -837,12 +838,13 @@ Frame GetCurrentFrame(int ms)
 #endif
 
 	}
+	DebugPop("Leaving GetCurrentFrame");
 	return f;
 }
 
 void RewindGhost(Frame* f)
 {
-	DebugPrint("Entering RewindGhost");
+	DebugPush("Entering RewindGhost");
 	if (f == NULL)
 		f = &previousGhostFrame;
 	else
@@ -863,12 +865,12 @@ void RewindGhost(Frame* f)
 	GhostMarble->setTransformMember(t2);
 	GhostMarble->setTransform(t2);
 	GhostMarble->setTransformVirt(t2);
-	DebugPrint("Leaving RewindGhost");
+	DebugPop("Leaving RewindGhost");
 }
 
 void RewindFrame(Frame* f)
 {
-	DebugPrint("Entering RewindFrame");
+	DebugPush("Entering RewindFrame");
 	TGE::NetConnection* LocalClientConnection = static_cast<TGE::NetConnection*>(TGE::Sim::findObject("LocalClientConnection"));
 	TGE::SimGroup* MissionGroup = static_cast<TGE::SimGroup*>(TGE::Sim::findObject("MissionGroup"));
 	TGE::SimObject* PlayGui = TGE::Sim::findObject("PlayGui");
@@ -1112,19 +1114,20 @@ void RewindFrame(Frame* f)
 	char buf3[64];
 	sprintf(buf3, "localclientconnection.player.setPowerup(%d);", powerup);
 	TGE::Con::evaluatef(buf3);
-	DebugPrint("Leaving RewindFrame");
+	DebugPop("Leaving RewindFrame");
 }
 
 void StoreCurrentFrame(int ms)
 {
-	DebugPrint("Entering StoreCurrentFrame");
+	DebugPush("Entering StoreCurrentFrame");
 	DebugPrint("Storing Frame %d",ms);
 	rewindManager.pushFrame(GetCurrentFrame(ms));
-	DebugPrint("Leaving StoreCurrentFrame");
+	DebugPop("Leaving StoreCurrentFrame");
 }
 
 void CallOnRewindEvent()
 {
+	DebugPush("Entering CallOnRewindEvent");
 	for (auto& binding : rewindManager.rewindableBindings)
 	{
 		if (binding->BindingType == Variable)
@@ -1134,10 +1137,12 @@ void CallOnRewindEvent()
 	}
 	TGE::SimGroup* MissionGroup = static_cast<TGE::SimGroup*>(TGE::Sim::findObject("MissionGroup"));
 	CallOnRewindEventForSceneObjectBinding(MissionGroup);
+	DebugPop("Leaving CallOnRewindEvent");
 }
 
 void CallOnRewindEventForSceneObjectBinding(TGE::SimGroup* group)
 {
+	DebugPush("Entering CallOnRewindEventForSceneObjectBinding");
 	for (int i = 0; i < group->getCount(); i++)
 	{
 		TGE::SimObject* obj = group->objectList[i];
@@ -1165,7 +1170,7 @@ void CallOnRewindEventForSceneObjectBinding(TGE::SimGroup* group)
 				}
 			}
 		}
-
 	}
+	DebugPop("Leaving CallOnRewindEventForSceneObjectBinding");
 }
 
