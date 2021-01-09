@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <cstring>
 #include <exception>
+#include <stdexcept>
 
 MemoryStream::MemoryStream()
 {
@@ -24,7 +25,7 @@ void MemoryStream::createFromBuffer(uint8_t* buffer, size_t count)
 	this->bufferSize = count;
 	this->properSize = count;
 	this->position = 0;
-	memcpy_s(this->buffer, count, buffer, count);
+	memcpy(this->buffer, buffer, count);
 }
 
 char MemoryStream::readChar()
@@ -116,7 +117,7 @@ float MemoryStream::readFloat()
 	checkEos();
 	uint8_t bytes[] = { readUInt8(), readUInt8(), readUInt8(), readUInt8() };
 	float ret;
-	memcpy_s(&ret, sizeof(float), bytes, 4);
+	memcpy(&ret, bytes, 4);
 	return ret;
 }
 
@@ -144,7 +145,7 @@ void MemoryStream::reallocate()
 	{
 		this->bufferSize += this->REALLOCATE_SIZE;
 		uint8_t* newBuffer = new uint8_t[this->bufferSize]();
-		memcpy_s(newBuffer, this->bufferSize, this->buffer, this->bufferSize - this->REALLOCATE_SIZE);
+		memcpy(newBuffer, this->buffer, this->bufferSize - this->REALLOCATE_SIZE);
 		delete[] this->buffer;
 		this->buffer = newBuffer;
 	}
@@ -299,7 +300,7 @@ bool MemoryStream::checkEos(bool error)
 {
 	if (this->position >= this->properSize || this->position < 0)
 		if (error)
-			throw std::exception("End of stream!");
+			throw std::runtime_error("End of stream!");
 		else
 			return true;
 	else
