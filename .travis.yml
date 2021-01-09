@@ -1,0 +1,17 @@
+language: cpp
+compiler: clang
+
+os: osx
+
+script:
+  - cmake CMakeLists.txt
+  - cmake  --build . --target Rewind
+
+deploy:
+  provider: releases
+  api_key: "73e9334c2604d90ced54e34dcd63a02dafed2767"
+  file_glob: true
+  file: ./*
+  skip_cleanup: true
+  on:
+	tags: true
