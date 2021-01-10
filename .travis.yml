@@ -3,6 +3,10 @@ compiler: clang
 
 os: osx
 
+branches:
+  only:
+  - master
+
 script:
   - cmake CMakeLists.txt
   - cmake  --build . --target Rewind
