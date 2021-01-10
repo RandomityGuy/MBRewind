@@ -17,5 +17,3 @@ deploy:
   file_glob: true
   file: ./*
   skip_cleanup: true
-  on:
-    tags: true
