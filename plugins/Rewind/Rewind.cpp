@@ -46,18 +46,22 @@ void setField(TGE::SimObject* obj, const char* field, const char* value)
 // Calls the hide function for an object
 void hide(TGE::SimObject* obj, int val)
 {
-	char buf[256];
-	sprintf(buf, "%s.hide(%d);", obj->getIdString(), val);
-	TGE::Con::evaluatef(buf);
+	static_cast<TGE::ShapeBase*>(obj)->setHidden(val);
+	//char buf[256];
+	//auto it = serverToClientSBMap.find(obj->getId());
+	//(*it).second->setHiddenSetter(val);
+	//sprintf(buf, "%s.hide(%d);", obj->getIdString(), val);
+	//TGE::Con::evaluatef(buf);
 }
 
 // Calls the isHidden function for an object
 bool getHidden(TGE::SimObject* obj)
 {
-	char buf[256];
-	sprintf(buf, "$InternalField=%s.isHidden();", obj->getIdString());
-	TGE::Con::evaluatef(buf);
-	return TGE::Con::getBoolVariable("$InternalField");
+	return static_cast<TGE::ShapeBase*>(obj)->getHiddenGetter();
+	//char buf[256];
+	//sprintf(buf, "$InternalField=%s.isHidden();", obj->getIdString());
+	//TGE::Con::evaluatef(buf);
+	//return TGE::Con::getBoolVariable("$InternalField");
 }
 
 // Sets the path position of a pathedInterior, implementation copied from TGE source, cause apparently that works
@@ -975,12 +979,10 @@ void RewindFrame(Frame* f)
 
 	if (framedata->teleportState.teleportDelay > 0)
 	{
-		char buf4[128];
-		sprintf(buf4, "ManualTeleport(%d,\"%s\");", framedata->teleportState.teleportDelay, framedata->teleportState.destination.c_str());
-		TGE::Con::evaluatef(buf4);
+		TGE::Con::executef(3, "ManualTeleport", StringMath::print(framedata->teleportState.teleportDelay), framedata->teleportState.destination.c_str());
 	}
 	else
-		TGE::Con::evaluatef("CancelTeleport();");
+		TGE::Con::executef(1, "CancelTeleport");
 
 	SetCheckpointState(player, framedata->checkpointState);
 
@@ -1110,10 +1112,7 @@ void RewindFrame(Frame* f)
 	}
 
 	DebugPrint("Setting Powerup %d", framedata->powerup);
-	int powerup = framedata->powerup;
-	char buf3[64];
-	sprintf(buf3, "localclientconnection.player.setPowerup(%d);", powerup);
-	TGE::Con::evaluatef(buf3);
+	TGE::Con::executef(player, 2, "setPowerup", StringMath::print(framedata->powerup));
 	DebugPop("Leaving RewindFrame");
 }
 

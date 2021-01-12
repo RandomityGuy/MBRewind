@@ -916,17 +916,27 @@ ReplayInfo RewindManager::analyze(std::string path)
 	return info;
 }
 
-void RewindManager::clear(bool write)
+void RewindManager::clear(bool write, Worker* worker)
 {
 	DebugPush("Entering RewindManager::clear(%d)", write);
 	if (write)
 	{
-		this->save(replayPath);
+		worker->addTask([this]() {
+			this->save(replayPath);		
+			this->Frames.clear();
+			this->pathedInteriors = NULL;
+			this->totalTime = 0;
+			DebugPop("Leaving RewindManager::clear");
+		});
+		
 	}
-	this->Frames.clear();
-	this->pathedInteriors = NULL;
-	this->totalTime = 0;
-	DebugPop("Leaving RewindManager::clear");
+	else
+	{
+		this->Frames.clear();
+		this->pathedInteriors = NULL;
+		this->totalTime = 0;
+		DebugPop("Leaving RewindManager::clear");
+	}
 }
 
 template<typename T>

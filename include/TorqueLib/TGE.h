@@ -870,14 +870,19 @@ namespace TGE
 		UNDEFVIRT(renderImage);
 		UNDEFVIRT(renderShadow);
 		UNDEFVIRT(calcClassRenderData);
-		VIRTFN(void, setHidden, (bool show), (show), TGEVIRT_SHAPEBASE_SETHIDDEN);
+		//VIRTFN(void, setHidden, (bool show), (show), TGEVIRT_SHAPEBASE_SETHIDDEN);
 		//UNDEFVIRT(onCollision);
 		//UNDEFVIRT(getSurfaceFriction);
 		//UNDEFVIRT(getBounceFriction);
 
+		MEMBERFN(void, setHidden, (bool hidden), (hidden), 0x40104B);
+
 
 		GETTERFNSIMP(F32, getFadeVal, TGEOFF_SHAPEBASE_FADEVAL);
 		SETTERFN(F32, setFadeVal, TGEOFF_SHAPEBASE_FADEVAL);
+
+		GETTERFNSIMP(bool, getHiddenGetter, TGEOFF_SHAPEBASE_HIDDEN);
+		SETTERFN(bool, setHiddenSetter, TGEOFF_SHAPEBASE_HIDDEN);
 
 		GETTERFNSIMP(TSThread*, getThread1, TGEOFF_SHAPEBASE_THREAD1);
 		GETTERFNSIMP(TSThread*, getThread2, TGEOFF_SHAPEBASE_THREAD2);
