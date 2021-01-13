@@ -48,6 +48,10 @@ typedef S32 NetSocket;
 
 namespace TGE
 {
+	namespace Namespace {
+		class Namespace;
+	}
+
 	class AbstractClassRep;
 
 	class ConsoleObject
