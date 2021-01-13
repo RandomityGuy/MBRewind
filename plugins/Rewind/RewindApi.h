@@ -30,6 +30,7 @@ BindingType
 
 */
 
+const char* executefnmspc(const char* ns, const char* fn, S32 argc, ...);
 
 enum RewindableType
 {

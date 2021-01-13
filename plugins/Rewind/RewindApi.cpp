@@ -94,14 +94,20 @@ TGE::Namespace::NamespaceEntry* lookup(TGE::Namespace::Namespace* nmspc, const c
 	TGE::Namespace::Namespace* nm = nmspc;
 	while (nm != NULL)
 	{
-		if (nm->mEntryList != NULL && strcmp(nm->mName, ns) == 0)
+		if (nm->mEntryList != NULL)
 		{
-			TGE::Namespace::NamespaceEntry* entry = nm->mEntryList;
-			while (entry != NULL)
+			if (nm->mName != NULL)
 			{
-				if (strcmp(entry->mFunctionName, fn) == 0)
-					return entry;
-				entry = entry->mNext;
+				if (strcmp(nm->mName, ns) == 0)
+				{
+					TGE::Namespace::NamespaceEntry* entry = nm->mEntryList;
+					while (entry != NULL)
+					{
+						if (strcmp(entry->mFunctionName, fn) == 0)
+							return entry;
+						entry = entry->mNext;
+					}
+				}
 			}
 		}
 		nm = nm->mNext;
@@ -158,32 +164,32 @@ std::string RewindableBinding<std::string>::getState()
 template<>
 int RewindableBinding<int>::getState(TGE::SimObject* obj)
 {
-	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "getState", 1, StringMath::print(obj->getId())));
+	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "getState", 1, TGE::StringTable->insert(StringMath::print(obj->getId()), false)));
 }
 
 template<>
 float RewindableBinding<float>::getState(TGE::SimObject* obj)
 {
-	return torqueAtof(executefnmspc(BindingNamespace.c_str(), "getState", 1, StringMath::print(obj->getId())));
+	return torqueAtof(executefnmspc(BindingNamespace.c_str(), "getState", 1, TGE::StringTable->insert(StringMath::print(obj->getId()), false)));
 }
 
 template<>
 bool RewindableBinding<bool>::getState(TGE::SimObject* obj)
 {
-	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "getState", 1, StringMath::print(obj->getId())));
+	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "getState", 1, TGE::StringTable->insert(StringMath::print(obj->getId()), false)));
 }
 
 template<>
 std::string RewindableBinding<std::string>::getState(TGE::SimObject* obj)
 {
-	return std::string(executefnmspc(BindingNamespace.c_str(), "getState", 1, StringMath::print(obj->getId())));
+	return std::string(executefnmspc(BindingNamespace.c_str(), "getState", 1, TGE::StringTable->insert(StringMath::print(obj->getId()), false)));
 }
 
 // Set State (Variable)
 template<typename T>
 void RewindableBinding<T>::setState(T state)
 {
-	executefnmspc(BindingNamespace.c_str(), "setState", 1, StringMath::print(state));
+	executefnmspc(BindingNamespace.c_str(), "setState", 1, TGE::StringTable->insert(StringMath::print(state), false));
 }
 
 
@@ -197,7 +203,7 @@ void RewindableBinding<std::string>::setState(std::string state)
 template<typename T>
 void RewindableBinding<T>::setState(T state,TGE::SimObject* obj)
 {
-	const char* stateval = StringMath::print(state);
+	const char* stateval = TGE::StringTable->insert(StringMath::print(state), false);
 	executefnmspc(BindingNamespace.c_str(), "setState", 2, obj->getIdString(), stateval);
 }
 
@@ -258,7 +264,7 @@ void RewindableBindingBase::onRewind()
 // OnRewind (Variable)
 void RewindableBindingBase::onRewind(TGE::SimObject* obj)
 {
-	executefnmspc(BindingNamespace.c_str(), "onRewind", 1, StringMath::print(obj->getId()));
+	executefnmspc(BindingNamespace.c_str(), "onRewind", 1, TGE::StringTable->insert(StringMath::print(obj->getId()), false));
 }
 
 // RewindableState IO

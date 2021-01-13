@@ -124,9 +124,9 @@ void setTargetPosition(SimObjectId pathedInterior, int pos)
 // Calls the TorqueScript defined function of the same name
 void SetTrapdoorThreadPos(SimObjectId id, float pos,bool isclient)
 {
-	char buf[64];
-	sprintf(buf, "SetTrapdoorThreadPos(%d,%f);", id, pos);
-	TGE::Con::evaluatef(buf);
+	std::string idstr = std::to_string(id);
+	std::string posstr = std::to_string(pos);
+	TGE::Con::executef(3, "SetTrapdoorThreadPos", idstr.c_str(), posstr.c_str());
 }
 
 // Gets the powerup states at the moment
@@ -153,7 +153,7 @@ std::vector<int> GetPowerupTimeStates()
 }
 
 // Sets the powerup states
-void SetPowerupTimeStates(std::vector<int> PowerupStates)
+void SetPowerupTimeStates(std::vector<int> PowerupStates, TGE::SimObject* localclientconnectionplayer)
 {
 	DebugPush("Entering SetPowerupTimeStates");
 	if (PowerupStates.size() != 3)
@@ -163,9 +163,12 @@ void SetPowerupTimeStates(std::vector<int> PowerupStates)
 		PowerupStates.push_back(0);
 		PowerupStates.push_back(0);
 	}
-	char buffer[256];
-	sprintf(buffer, "SuperBounceItem::CustomOnUse(LocalClientConnection.player,%d);ShockAbsorberItem::CustomOnUse(LocalClientConnection.player,%d);HelicopterItem::CustomOnUse(LocalClientConnection.player,%d);", PowerupStates[0], PowerupStates[1], PowerupStates[2]);
-	TGE::Con::evaluatef(buffer);
+	//char buffer[256];
+	//sprintf(buffer, "SuperBounceItem::CustomOnUse(LocalClientConnection.player,%d);ShockAbsorberItem::CustomOnUse(LocalClientConnection.player,%d);HelicopterItem::CustomOnUse(LocalClientConnection.player,%d);", PowerupStates[0], PowerupStates[1], PowerupStates[2]);
+	//TGE::Con::evaluatef(buffer);
+	executefnmspc("SuperBounceItem", "CustomOnUse", 2, localclientconnectionplayer->getIdString(), TGE::StringTable->insert(StringMath::print(PowerupStates[0]), false));
+	executefnmspc("ShockAbsorberItem", "CustomOnUse", 2, localclientconnectionplayer->getIdString(), TGE::StringTable->insert(StringMath::print(PowerupStates[1]), false));
+	executefnmspc("HelicopterItem", "CustomOnUse", 2, localclientconnectionplayer->getIdString(), TGE::StringTable->insert(StringMath::print(PowerupStates[2]), false));
 	DebugPop("Leaving SetPowerupTimeStates");
 }
 
@@ -447,7 +450,7 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 					if (state > 0)
 					{
 						hide(obj, 1);
-						TGE::Con::evaluatef((std::string(obj->getIdString()) + ".startFade(0,0,1);").c_str());
+						TGE::Con::executef(obj, 4, "startFade", "0", "0", "1");
 
 						char buf2[256];
 						sprintf(buf2, " %d.respawnSchedule = %d.schedule(%d, \"hide\", \"false\");%d.respawnSchedule2 = %d.schedule(%d, \"startFade\", 1000, 0, false);", obj->getId(), obj->getId(), state, obj->getId(), obj->getId(), state + 100);
@@ -456,7 +459,7 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 					else
 					{
 						hide(obj, 0);
-						TGE::Con::evaluatef((std::string(obj->getIdString()) + ".startFade(0,0,0);").c_str());
+						TGE::Con::executef(obj, 4, "startFade", "0", "0", "0");
 					}
 
 					setField(obj, "respawnTime", StringMath::print(state > 0 ? state : 0));
@@ -491,7 +494,7 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 					if (state > 0)
 					{
 						hide(obj, 1);
-						TGE::Con::evaluatef((std::string(obj->getIdString()) + ".startFade(0,0,1);").c_str());
+						TGE::Con::executef(obj, 4, "startFade", "0", "0", "1");
 
 						char buf2[256];
 						sprintf(buf2, " %d.resetSchedule = %d.schedule(%d, \"setDamageState\", \"Enabled\");%d.resetSchedule2 = %d.schedule(%d, \"startFade\", 1000, 0, false);", obj->getId(), obj->getId(), state, obj->getId(), obj->getId(), state);
@@ -500,8 +503,8 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 					else
 					{
 						hide(obj, 0);
-						TGE::Con::evaluatef((std::string(obj->getIdString()) + ".startFade(0,0,0);").c_str());
-						TGE::Con::evaluatef((std::string(obj->getIdString()) + ".setDamageState(\"Enabled\");").c_str());
+						TGE::Con::executef(obj, 4, "startFade", "0", "0", "0");
+						TGE::Con::executef(obj, 2, "setDamageState", "Enabled");
 
 					}
 					setField(obj, "resetClock", StringMath::print(state > 0 ? state : 0));
@@ -519,9 +522,9 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 						previousstate->trapdoorpos.erase(previousstate->trapdoorpos.begin());
 
 						DebugPrint("Setting Trapdoor Direction %d", missionstate->trapdoordirs[0]);
-						char buf[96];
-						sprintf(buf, "%d.setThreadDir(0,%d);%d.playThread(0);", obj->getId(), missionstate->trapdoordirs[0], obj->getId()); //too lazy to port updateThread
-						TGE::Con::evaluatef(buf);
+						std::string dirstr = std::to_string(missionstate->trapdoordirs[0]);
+						TGE::Con::executef(obj, 3, "setThreadDir", "0", dirstr.c_str());
+						TGE::Con::executef(obj, 2, "playThread", "0");
 						missionstate->trapdoordirs.erase(missionstate->trapdoordirs.begin());
 						previousstate->trapdoordirs.erase(previousstate->trapdoordirs.begin());
 
@@ -722,8 +725,8 @@ Frame GetCurrentFrame(int ms)
 	TGE::SimGroup* MissionGroup = static_cast<TGE::SimGroup*>(TGE::Sim::findObject("MissionGroup"));
 	TGE::SimObject* PlayGui = TGE::Sim::findObject("PlayGui");
 
-	TGE::Con::evaluatef("$CMarble = ClientMarble();if (isObject(LocalClientConnection.player.getPowerup())) $CurrentPowerup = LocalClientConnection.player.getPowerup().getID(); else $CurrentPowerup = 0;");
-	TGE::Marble* ClientMarble = static_cast<TGE::Marble*>(TGE::Sim::findObject(TGE::Con::getVariable("$CMarble")));
+	TGE::Con::evaluatef("if (isObject(LocalClientConnection.player.getPowerup())) $CurrentPowerup = LocalClientConnection.player.getPowerup().getID(); else $CurrentPowerup = 0;");
+	TGE::Marble* ClientMarble = static_cast<TGE::Marble*>(TGE::Sim::findObject(TGE::Con::executef(1, "ClientMarble")));
 
 	Frame f;
 	DebugPrint("Storing Basic Details");
@@ -933,12 +936,11 @@ void RewindFrame(Frame* f)
 	TGE::Con::setIntVariable("$Rewind::TimeBonus", framedata->timebonus);
 
 	DebugPrint("Setting Time %d",framedata->ms);
-	char buf[96];
-	sprintf(buf, "PlayGui.setTime(%d);$CMarble = ClientMarble();PlayGui.totalTime=%d;", framedata->ms,framedata->elapsedTime);
-	TGE::Con::evaluatef(buf);
+	TGE::Con::executef(PlayGui, 2, "setTime", TGE::StringTable->insert(StringMath::print(framedata->ms), false));
+	setField(PlayGui, "totalTime", StringMath::print(framedata->elapsedTime));
 
 
-	TGE::Marble* ClientMarble = static_cast<TGE::Marble*>(TGE::Sim::findObject(TGE::Con::getVariable("$CMarble")));
+	TGE::Marble* ClientMarble = static_cast<TGE::Marble*>(TGE::Sim::findObject(TGE::Con::executef(1, "ClientMarble")));
 
 	DebugPrint("Setting Marble Position %f %f %f", framedata->position.x, framedata->position.y, framedata->position.z);
 	MatrixF cmtransform = ClientMarble->getTransform();
@@ -970,7 +972,7 @@ void RewindFrame(Frame* f)
 
 	if (framedata->teleportState.teleportDelay > 0)
 	{
-		TGE::Con::executef(3, "ManualTeleport", StringMath::print(framedata->teleportState.teleportDelay), framedata->teleportState.destination.c_str());
+		TGE::Con::executef(3, "ManualTeleport", TGE::StringTable->insert(StringMath::print(framedata->teleportState.teleportDelay), false), framedata->teleportState.destination.c_str());
 	}
 	else
 		TGE::Con::executef(1, "CancelTeleport");
@@ -1002,7 +1004,7 @@ void RewindFrame(Frame* f)
 	for (auto& it : framedata->activepowstates)
 		DebugPrint("%d", it);
 
-	SetPowerupTimeStates(framedata->activepowstates);
+	SetPowerupTimeStates(framedata->activepowstates, player);
 
 	DebugPrint("Setting GravityDir %s", framedata->gravityDir.c_str());
 	TGE::Con::setVariable("$Game::GravityDir", TGE::StringTable->insert(framedata->gravityDir.c_str(), true));
@@ -1014,9 +1016,9 @@ void RewindFrame(Frame* f)
 	setField(LocalClientConnection, "gemCount", StringMath::print(framedata->gemcount));
 
 	DebugPrint("Setting GameState %s", framedata->gamestate.c_str());
-	char buf2[256];
-	sprintf(buf2, "setRewindGameState(%s);PlayGui.setGemCount(%d);setGravityDirection($Game::GravityDir);",framedata->gamestate.c_str(),framedata->gemcount);
-	TGE::Con::evaluatef(buf2);
+	TGE::Con::executef(2, "setRewindGameState", framedata->gamestate.c_str());
+	TGE::Con::executef(PlayGui, 2, "setGemCount", TGE::StringTable->insert(StringMath::print(framedata->gemcount), false));
+	TGE::Con::executef(2, "setGravityDirection", framedata->gravityDir.c_str());
 
 	if (framedata->trapdoorpos.size() != 0)
 	{
@@ -1103,7 +1105,7 @@ void RewindFrame(Frame* f)
 	}
 
 	DebugPrint("Setting Powerup %d", framedata->powerup);
-	TGE::Con::executef(player, 2, "setPowerup", StringMath::print(framedata->powerup));
+	TGE::Con::executef(player, 2, "setPowerup", TGE::StringTable->insert(StringMath::print(framedata->powerup), true));
 	delete framedata;
 	DebugPop("Leaving RewindFrame");
 }
