@@ -946,19 +946,13 @@ void RewindManager::clear(bool write, Worker* worker)
 			copy->save(replayPath);
 			delete copy;
 			// DebugPop("Leaving RewindManager::clear");
-		});
-		this->Frames.clear();
-		this->pathedInteriors = NULL;
-		this->totalTime = 0;
-		
+			});
 	}
-	else
-	{
-		this->Frames.clear();
-		this->pathedInteriors = NULL;
-		this->totalTime = 0;
-		DebugPop("Leaving RewindManager::clear");
-	}
+
+	this->Frames.clear();
+	this->pathedInteriors = NULL;
+	this->totalTime = 0;
+	DebugPop("Leaving RewindManager::clear");
 }
 
 template<typename T>
@@ -1358,6 +1352,8 @@ Frame* RewindManager::getNextFrame(float delta)
 	if (testF == NULL) return NULL;
 
 	Frame* f = new Frame(*testF);
+
+	delete testF;
 	
 	DebugPop("Leaving RewindManager::getNextFrame");
 	return f;
@@ -1379,6 +1375,8 @@ Frame* RewindManager::getNextNonElapsedFrame(float delta)
 	if (testF == NULL) return NULL;
 
 	Frame* f = new Frame(*testF);
+
+	delete testF;
 
 	if (currentIndex >= Frames.size())
 	{
@@ -1442,6 +1440,7 @@ void RewindManager::spliceReplayFromMs(float ms)
 	}
 	if (atMs != NULL)
 		newFrames.push_back(*atMs);
+	delete atMs;
 	Frames = newFrames;
 	DebugPop("Leaving RewindManager::spliceReplayFromMs");
 }

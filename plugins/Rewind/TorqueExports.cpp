@@ -108,13 +108,17 @@ ConsoleFunction(unregisterRewindable, void, 2, 2, "unregisterRewindable(string n
 	{
 		if (strcmp(rewindManager.rewindableBindings[i]->BindingNamespace.c_str(), argv[1]) == 0)
 		{
+			RewindableBindingBase* base = *(rewindManager.rewindableBindings.begin() + i);
 			rewindManager.rewindableBindings.erase(rewindManager.rewindableBindings.begin() + i);
+			delete base;
 
 			for (size_t i = 0; i < ghostReplayManager.rewindableBindings.size(); i++)
 			{
 				if (strcmp(ghostReplayManager.rewindableBindings[i]->BindingNamespace.c_str(), argv[1]) == 0)
 				{
+					RewindableBindingBase* base2 = *(ghostReplayManager.rewindableBindings.begin() + i);
 					ghostReplayManager.rewindableBindings.erase(ghostReplayManager.rewindableBindings.begin() + i);
+					delete base2;
 					return;
 				}
 			}
@@ -273,12 +277,17 @@ ConsoleFunction(rewindToMs, bool, 2, 2, "rewindToMs(ms)")
 		return false;
 
 	RewindFrame(f);
+
+	delete f;
+
 	return true;
 }
 
 ConsoleFunction(rewindGhost_internal, void, 2, 2, "rewindGhost_internal(delta)")
 {
-	RewindGhost(ghostReplayManager.getRealtimeFrameAtMs(atof(argv[1])));
+	Frame* f = ghostReplayManager.getRealtimeFrameAtMs(atof(argv[1]));
+	RewindGhost(f);
+	delete f;
 }
 
 ConsoleFunction(storeFrame, void, 2, 2, "storeFrame(ms)")

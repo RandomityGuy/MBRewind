@@ -1104,6 +1104,7 @@ void RewindFrame(Frame* f)
 
 	DebugPrint("Setting Powerup %d", framedata->powerup);
 	TGE::Con::executef(player, 2, "setPowerup", StringMath::print(framedata->powerup));
+	delete framedata;
 	DebugPop("Leaving RewindFrame");
 }
 
