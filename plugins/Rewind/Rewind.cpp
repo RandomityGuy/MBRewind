@@ -47,21 +47,12 @@ void setField(TGE::SimObject* obj, const char* field, const char* value)
 void hide(TGE::SimObject* obj, int val)
 {
 	static_cast<TGE::ShapeBase*>(obj)->setHidden(val);
-	//char buf[256];
-	//auto it = serverToClientSBMap.find(obj->getId());
-	//(*it).second->setHiddenSetter(val);
-	//sprintf(buf, "%s.hide(%d);", obj->getIdString(), val);
-	//TGE::Con::evaluatef(buf);
 }
 
 // Calls the isHidden function for an object
 bool getHidden(TGE::SimObject* obj)
 {
 	return static_cast<TGE::ShapeBase*>(obj)->getHiddenGetter();
-	//char buf[256];
-	//sprintf(buf, "$InternalField=%s.isHidden();", obj->getIdString());
-	//TGE::Con::evaluatef(buf);
-	//return TGE::Con::getBoolVariable("$InternalField");
 }
 
 // Sets the path position of a pathedInterior, implementation copied from TGE source, cause apparently that works
