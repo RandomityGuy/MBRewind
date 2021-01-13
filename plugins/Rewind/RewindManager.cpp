@@ -315,6 +315,9 @@ float InterpolateNextStateTimer(Frame one, Frame two, float ratio)
 template<typename T>
 bool CompareListEquality(std::vector<T> one, std::vector<T> two)
 {
+	//if (one.size() != two.size())
+	//	return false;
+
 	for (int i = 0; i < one.size(); i++)
 	{
 		if (one[i] != two[i])

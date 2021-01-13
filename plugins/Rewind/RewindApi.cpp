@@ -2,6 +2,7 @@
 #include "RewindApi.h"
 #include <cstdio>
 #include "StringMath.h"
+#include <string>
 
 template <typename T>
 RewindableBinding<T>::RewindableBinding(RewindableType bindingtype,std::string bindingnamespace)
@@ -196,38 +197,55 @@ void RewindableBinding<std::string>::setState(std::string state)
 template<typename T>
 void RewindableBinding<T>::setState(T state,TGE::SimObject* obj)
 {
-	executefnmspc(BindingNamespace.c_str(), "setState", 2, StringMath::print(obj->getId()), StringMath::print(state));
+	const char* stateval = StringMath::print(state);
+	executefnmspc(BindingNamespace.c_str(), "setState", 2, obj->getIdString(), stateval);
 }
 
 template<>
 void RewindableBinding<std::string>::setState(std::string state, TGE::SimObject* obj)
 {
-	executefnmspc(BindingNamespace.c_str(), "setState", 2, StringMath::print(obj->getId()), state.c_str());
+	executefnmspc(BindingNamespace.c_str(), "setState", 2, obj->getIdString(), state.c_str());
 }
 
 // Interpolate State (Variable)
 template<>
 int RewindableBinding<int>::interpolateState(int one, int two, float ratio, float delta)
 {
-	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, StringMath::print(one), StringMath::print(two), StringMath::print(ratio), StringMath::print(delta)));
+	std::string oneptr = std::to_string(one);
+	std::string twoptr = std::to_string(two);
+	std::string ratioptr = std::to_string(ratio);
+	std::string deltaptr = std::to_string(delta);
+	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, oneptr.c_str(), twoptr.c_str(), ratioptr.c_str(), deltaptr.c_str()));
 }
 
 template<>
 float RewindableBinding<float>::interpolateState(float one, float two, float ratio, float delta)
 {
-	return torqueAtof(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, StringMath::print(one), StringMath::print(two), StringMath::print(ratio), StringMath::print(delta)));
+	std::string oneptr = std::to_string(one);
+	std::string twoptr = std::to_string(two);
+	std::string ratioptr = std::to_string(ratio);
+	std::string deltaptr = std::to_string(delta);
+	return torqueAtof(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, oneptr.c_str(), twoptr.c_str(), ratioptr.c_str(), deltaptr.c_str()));
 }
 
 template<>
 bool RewindableBinding<bool>::interpolateState(bool one, bool two, float ratio, float delta)
 {
-	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, StringMath::print(one), StringMath::print(two), StringMath::print(ratio), StringMath::print(delta)));
+	std::string oneptr = std::to_string(one);
+	std::string twoptr = std::to_string(two);
+	std::string ratioptr = std::to_string(ratio);
+	std::string deltaptr = std::to_string(delta);
+	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, oneptr.c_str(), twoptr.c_str(), ratioptr.c_str(), deltaptr.c_str()));
 }
 
 template<>
 std::string RewindableBinding<std::string>::interpolateState(std::string one, std::string two, float ratio, float delta)
 {
-	return std::string(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4,one.c_str(), two.c_str(), StringMath::print(ratio), StringMath::print(delta)));
+	const char* oneptr = one.c_str();
+	const char* twoptr = two.c_str();
+	std::string ratioptr = std::to_string(ratio);
+	std::string deltaptr = std::to_string(delta);
+	return std::string(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, oneptr, twoptr, ratioptr.c_str(), deltaptr.c_str()));
 }
 
 // OnRewind (Variable)
