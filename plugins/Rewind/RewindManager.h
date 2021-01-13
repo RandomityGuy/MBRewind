@@ -49,6 +49,7 @@ class RewindManager
 {
 	std::vector<Frame> Frames;
 	std::vector<std::vector<Frame>> SaveStates;
+	std::mutex mutex;
 
 public:
 	std::string replayPath = std::string(".\\marble\\client\\replays\\testReplay.rwx");
@@ -70,6 +71,7 @@ public:
 
 public:
 	RewindManager();
+	RewindManager(const RewindManager&);
 	~RewindManager();
 	void pushFrame(Frame f);
 	Frame popFrame(bool peek);

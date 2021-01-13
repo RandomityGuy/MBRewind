@@ -364,9 +364,26 @@ RewindManager::RewindManager()
 {
 }
 
+RewindManager::RewindManager(const RewindManager& rw)
+{
+	this->averageDelta = rw.averageDelta;
+	this->currentIndex = rw.currentIndex;
+	this->Frames = rw.Frames;
+	this->game = rw.game;
+	this->pathedInteriors = rw.pathedInteriors;
+	this->replayMission = rw.replayMission;
+	this->replayPath = rw.replayPath;
+	this->rewindableBindings = rw.rewindableBindings;
+	this->SaveStates = rw.SaveStates;
+	this->streamTimePosition = rw.streamTimePosition;
+	this->totalTime = rw.totalTime;
+}
+
 
 RewindManager::~RewindManager()
 {
+	if (this->pathedInteriors != NULL)
+		delete this->pathedInteriors;
 }
 
 
@@ -924,13 +941,15 @@ void RewindManager::clear(bool write, Worker* worker)
 	DebugPush("Entering RewindManager::clear(%d)", write);
 	if (write)
 	{
-		worker->addTask([this]() {
-			this->save(replayPath);		
-			this->Frames.clear();
-			this->pathedInteriors = NULL;
-			this->totalTime = 0;
-			DebugPop("Leaving RewindManager::clear");
+		RewindManager* copy = new RewindManager(*this);
+		worker->addTask([=]() {
+			copy->save(replayPath);
+			delete copy;
+			// DebugPop("Leaving RewindManager::clear");
 		});
+		this->Frames.clear();
+		this->pathedInteriors = NULL;
+		this->totalTime = 0;
 		
 	}
 	else
