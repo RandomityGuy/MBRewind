@@ -315,6 +315,9 @@ float InterpolateNextStateTimer(Frame one, Frame two, float ratio)
 template<typename T>
 bool CompareListEquality(std::vector<T> one, std::vector<T> two)
 {
+	//if (one.size() != two.size())
+	//	return false;
+
 	for (int i = 0; i < one.size(); i++)
 	{
 		if (one[i] != two[i])
@@ -361,9 +364,26 @@ RewindManager::RewindManager()
 {
 }
 
+RewindManager::RewindManager(const RewindManager& rw)
+{
+	this->averageDelta = rw.averageDelta;
+	this->currentIndex = rw.currentIndex;
+	this->Frames = rw.Frames;
+	this->game = rw.game;
+	this->pathedInteriors = rw.pathedInteriors;
+	this->replayMission = rw.replayMission;
+	this->replayPath = rw.replayPath;
+	this->rewindableBindings = rw.rewindableBindings;
+	this->SaveStates = rw.SaveStates;
+	this->streamTimePosition = rw.streamTimePosition;
+	this->totalTime = rw.totalTime;
+}
+
 
 RewindManager::~RewindManager()
 {
+	if (this->pathedInteriors != NULL)
+		delete this->pathedInteriors;
 }
 
 
@@ -916,13 +936,19 @@ ReplayInfo RewindManager::analyze(std::string path)
 	return info;
 }
 
-void RewindManager::clear(bool write)
+void RewindManager::clear(bool write, Worker* worker)
 {
 	DebugPush("Entering RewindManager::clear(%d)", write);
 	if (write)
 	{
-		this->save(replayPath);
+		RewindManager* copy = new RewindManager(*this);
+		worker->addTask([=]() {
+			copy->save(replayPath);
+			delete copy;
+			// DebugPop("Leaving RewindManager::clear");
+			});
 	}
+
 	this->Frames.clear();
 	this->pathedInteriors = NULL;
 	this->totalTime = 0;
@@ -1326,6 +1352,8 @@ Frame* RewindManager::getNextFrame(float delta)
 	if (testF == NULL) return NULL;
 
 	Frame* f = new Frame(*testF);
+
+	delete testF;
 	
 	DebugPop("Leaving RewindManager::getNextFrame");
 	return f;
@@ -1347,6 +1375,8 @@ Frame* RewindManager::getNextNonElapsedFrame(float delta)
 	if (testF == NULL) return NULL;
 
 	Frame* f = new Frame(*testF);
+
+	delete testF;
 
 	if (currentIndex >= Frames.size())
 	{
@@ -1410,6 +1440,7 @@ void RewindManager::spliceReplayFromMs(float ms)
 	}
 	if (atMs != NULL)
 		newFrames.push_back(*atMs);
+	delete atMs;
 	Frames = newFrames;
 	DebugPop("Leaving RewindManager::spliceReplayFromMs");
 }

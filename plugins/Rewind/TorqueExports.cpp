@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "Rewind.h"
 #include "RewindApi.h"
+#include "WorkerThread.h"
 #ifdef __APPLE__
 #include <sys/stat.h>
 #include <unistd.h>
@@ -32,6 +33,8 @@ std::vector<TGE::TSShapeInstance*> trapdoorShapeInstances;
 Frame previousGhostFrame;
 Frame previousFrame;
 
+Worker workerThread;
+
 bool physicsOn = true;
 
 bool lockTransforms = false;
@@ -40,6 +43,26 @@ U32 timeDelta = 0;
 F32 replayTimeDelta = 0;
 
 int debugIndent = 0;
+
+std::vector<std::string> executeQueue;
+std::mutex executeMutex;
+
+//---------------------------------------------------------------------------------------
+// Hacky Async
+
+ConsoleFunction(tickAsync, void, 1, 1, "tickAsync()")
+{
+	executeMutex.lock();
+	if (!executeQueue.empty())
+	{
+		for (auto& str : executeQueue) {
+			TGE::Con::evaluatef(str.c_str());
+		}
+	}
+	executeQueue.clear();
+	executeMutex.unlock();
+}
+
 
 //---------------------------------------------------------------------------------------
 // API Functions
@@ -85,13 +108,17 @@ ConsoleFunction(unregisterRewindable, void, 2, 2, "unregisterRewindable(string n
 	{
 		if (strcmp(rewindManager.rewindableBindings[i]->BindingNamespace.c_str(), argv[1]) == 0)
 		{
+			RewindableBindingBase* base = *(rewindManager.rewindableBindings.begin() + i);
 			rewindManager.rewindableBindings.erase(rewindManager.rewindableBindings.begin() + i);
+			delete base;
 
 			for (size_t i = 0; i < ghostReplayManager.rewindableBindings.size(); i++)
 			{
 				if (strcmp(ghostReplayManager.rewindableBindings[i]->BindingNamespace.c_str(), argv[1]) == 0)
 				{
+					RewindableBindingBase* base2 = *(ghostReplayManager.rewindableBindings.begin() + i);
 					ghostReplayManager.rewindableBindings.erase(ghostReplayManager.rewindableBindings.begin() + i);
+					delete base2;
 					return;
 				}
 			}
@@ -217,7 +244,7 @@ ConsoleFunction(getAverageFrameDelta, F32, 1, 1, "getAverageFrameDelta()")
 
 ConsoleFunction(clearFrames, void, 1, 2, "clearFrames(bool write)")
 {
-	rewindManager.clear(atoi(argv[1]));
+	rewindManager.clear(atoi(argv[1]), &workerThread);
 }
 
 ConsoleFunction(rewindFrame_internal, bool, 1, 2, "rewindFrame_internal(delta)")
@@ -250,12 +277,17 @@ ConsoleFunction(rewindToMs, bool, 2, 2, "rewindToMs(ms)")
 		return false;
 
 	RewindFrame(f);
+
+	delete f;
+
 	return true;
 }
 
 ConsoleFunction(rewindGhost_internal, void, 2, 2, "rewindGhost_internal(delta)")
 {
-	RewindGhost(ghostReplayManager.getRealtimeFrameAtMs(atof(argv[1])));
+	Frame* f = ghostReplayManager.getRealtimeFrameAtMs(atof(argv[1]));
+	RewindGhost(f);
+	delete f;
 }
 
 ConsoleFunction(storeFrame, void, 2, 2, "storeFrame(ms)")
@@ -283,21 +315,27 @@ ConsoleFunction(getStateCount, int, 1, 1, "getStateCount()")
 	return rewindManager.getSavedStateCount();
 }
 
-ConsoleFunction(analyzeReplay, int, 2, 2, "analyzeReplay(string path)")
+ConsoleFunction(analyzeReplay, void, 3, 3, "analyzeReplay(string path, function onReplayLoaded(scriptObject))")
 {
-	TGE::Con::printf("Analyzing replay %s", argv[1]);
-	char buf[1024];
+	std::string path = std::string(argv[1]);
+	std::string callback = std::string(argv[2]);
 
-	ReplayInfo info = rewindManager.analyze(std::string(argv[1]));
+	workerThread.addTask([=]() {
+		TGE::Con::printf("Analyzing replay %s", path.c_str());
+		char buf[1024];
 
-	sprintf(buf, "new ScriptObject(ReplayAnalysis) { version = %d; framecount = %d; time = %d; elapsedtime = %d; replaymission = \"%s\"; };", info.version, info.frameCount, info.time, info.elapsedTime, info.replayMission.c_str());
+		ReplayInfo info = rewindManager.analyze(path);
 
-	TGE::Con::evaluatef(buf);
+		sprintf(buf, "$ReplayAnalysisReturn = new ScriptObject(ReplayAnalysis) { version = %d; framecount = %d; time = %d; elapsedtime = %d; replaymission = \"%s\"; };", info.version, info.frameCount, info.time, info.elapsedTime, info.replayMission.c_str());
 
-	int id = TGE::Sim::findObject("ReplayAnalysis")->getId();
+		executeMutex.lock();
+		executeQueue.push_back(std::string(buf));
 
-	return id;
-
+		char buf2[1024];
+		sprintf(buf2, "%s($ReplayAnalysisReturn);", callback.c_str());
+		executeQueue.push_back(std::string(buf2));
+		executeMutex.unlock();
+	});
 }
 
 ConsoleFunction(spliceReplay, void, 2, 2, "spliceReplay(float ms)")
@@ -840,4 +878,5 @@ PLUGINCALLBACK void postEngineInit(PluginInterface *plugin)
 
 PLUGINCALLBACK void engineShutdown(PluginInterface *plugin)
 {
+
 }

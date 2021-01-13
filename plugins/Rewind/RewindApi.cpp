@@ -1,6 +1,8 @@
 #include <TorqueLib/TGE.h>
 #include "RewindApi.h"
 #include <cstdio>
+#include "StringMath.h"
+#include <string>
 
 template <typename T>
 RewindableBinding<T>::RewindableBinding(RewindableType bindingtype,std::string bindingnamespace)
@@ -65,198 +67,198 @@ int RewindableBinding<std::string>::getStorageType()
 	return 3;
 }
 
+int torqueAtoi(const char* str)
+{
+	if (strcmp(str, "true") == 0)
+		return 1;
+	if (strcmp(str, "false") == 0)
+		return 0;
+	if (strcmp(str, "") == 0)
+		return 0;
+	return atoi(str);
+}
+
+double torqueAtof(const char* str)
+{
+	if (strcmp(str, "true") == 0)
+		return 1;
+	if (strcmp(str, "false") == 0)
+		return 0;
+	if (strcmp(str, "") == 0)
+		return 0;
+	return atof(str);
+}
+
+TGE::Namespace::NamespaceEntry* lookup(TGE::Namespace::Namespace* nmspc, const char* ns, const char* fn)
+{
+	TGE::Namespace::Namespace* nm = nmspc;
+	while (nm != NULL)
+	{
+		if (nm->mEntryList != NULL && strcmp(nm->mName, ns) == 0)
+		{
+			TGE::Namespace::NamespaceEntry* entry = nm->mEntryList;
+			while (entry != NULL)
+			{
+				if (strcmp(entry->mFunctionName, fn) == 0)
+					return entry;
+				entry = entry->mNext;
+			}
+		}
+		nm = nm->mNext;
+	}
+}
+
+const char* executeNamespacedFn(const char* ns, const char* fn, int argc, const char* argv[])
+{
+	TGE::Namespace::Namespace* nmspc = TGE::Namespace::find(ns, 0);
+	TGE::Namespace::NamespaceEntry* en = lookup(nmspc, ns, fn);// nmspc->lookup(TGE::StringTable->insert(fn, false));
+	return en->execute(argc, argv, TGE::Namespace::gEvalState);
+}
+
+const char* executefnmspc(const char* ns, const char* fn, S32 argc, ...)
+{
+	const char* argv[128];
+
+	va_list args;
+	va_start(args, argc);
+	argv[0] = fn;
+	for (S32 i = 0; i < argc; i++)
+		argv[i + 1] = va_arg(args, const char*);
+	va_end(args);
+
+	return executeNamespacedFn(ns, fn, argc + 1, argv);
+}
+
 // Get State (Variable)
 template<>
 int RewindableBinding<int>::getState()
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::getState();", BindingNamespace.c_str());
-	TGE::Con::evaluatef(buf);
-	return TGE::Con::getIntVariable("$tempAPIVar");
+	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "getState", 0));
 }
 
 template<>
 float RewindableBinding<float>::getState()
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::getState();", BindingNamespace.c_str());
-	TGE::Con::evaluatef(buf);
-	return TGE::Con::getFloatVariable("$tempAPIVar");
+	return torqueAtof(executefnmspc(BindingNamespace.c_str(), "getState", 0));
 }
 
 template<>
 bool RewindableBinding<bool>::getState()
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::getState();", BindingNamespace.c_str());
-	TGE::Con::evaluatef(buf);
-	return TGE::Con::getBoolVariable("$tempAPIVar");
+	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "getState", 0));
 }
 
 template<>
 std::string RewindableBinding<std::string>::getState()
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::getState();", BindingNamespace.c_str());
-	TGE::Con::evaluatef(buf);
-	return std::string(TGE::Con::getVariable("$tempAPIVar"));
+	return std::string(executefnmspc(BindingNamespace.c_str(), "getState", 0));
 }
 
 // Get State (Object)
 template<>
 int RewindableBinding<int>::getState(TGE::SimObject* obj)
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::getState(%d);", BindingNamespace.c_str(),obj->getId());
-	TGE::Con::evaluatef(buf);
-	return TGE::Con::getIntVariable("$tempAPIVar");
+	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "getState", 1, StringMath::print(obj->getId())));
 }
 
 template<>
 float RewindableBinding<float>::getState(TGE::SimObject* obj)
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::getState(%d);", BindingNamespace.c_str(), obj->getId());
-	TGE::Con::evaluatef(buf);
-	return TGE::Con::getFloatVariable("$tempAPIVar");
+	return torqueAtof(executefnmspc(BindingNamespace.c_str(), "getState", 1, StringMath::print(obj->getId())));
 }
 
 template<>
 bool RewindableBinding<bool>::getState(TGE::SimObject* obj)
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::getState(%d);", BindingNamespace.c_str(), obj->getId());
-	TGE::Con::evaluatef(buf);
-	return TGE::Con::getBoolVariable("$tempAPIVar");
+	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "getState", 1, StringMath::print(obj->getId())));
 }
 
 template<>
 std::string RewindableBinding<std::string>::getState(TGE::SimObject* obj)
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::getState(%d);", BindingNamespace.c_str(), obj->getId());
-	TGE::Con::evaluatef(buf);
-	return std::string(TGE::Con::getVariable("$tempAPIVar"));
+	return std::string(executefnmspc(BindingNamespace.c_str(), "getState", 1, StringMath::print(obj->getId())));
 }
 
 // Set State (Variable)
-template<>
-void RewindableBinding<int>::setState(int state)
+template<typename T>
+void RewindableBinding<T>::setState(T state)
 {
-	char buf[512];
-	sprintf(buf, "%s::setState(%d);", BindingNamespace.c_str(), state);
-	TGE::Con::evaluatef(buf);
+	executefnmspc(BindingNamespace.c_str(), "setState", 1, StringMath::print(state));
 }
 
-template<>
-void RewindableBinding<float>::setState(float state)
-{
-	char buf[512];
-	sprintf(buf, "%s::setState(%f);", BindingNamespace.c_str(), state);
-	TGE::Con::evaluatef(buf);
-}
-
-template<>
-void RewindableBinding<bool>::setState(bool state)
-{
-	char buf[512];
-	sprintf(buf, "%s::setState(%d);", BindingNamespace.c_str(), state);
-	TGE::Con::evaluatef(buf);
-}
 
 template<>
 void RewindableBinding<std::string>::setState(std::string state)
 {
-	char buf[512];
-	sprintf(buf, "%s::setState(%s);", BindingNamespace.c_str(), state.c_str());
-	TGE::Con::evaluatef(buf);
+	executefnmspc(BindingNamespace.c_str(), "setState", 1, state.c_str());
 }
 
 // Set State (Object)
-template<>
-void RewindableBinding<int>::setState(int state,TGE::SimObject* obj)
+template<typename T>
+void RewindableBinding<T>::setState(T state,TGE::SimObject* obj)
 {
-	char buf[512];
-	sprintf(buf, "%s::setState(%d,%d);", BindingNamespace.c_str(),obj->getId(), state);
-	TGE::Con::evaluatef(buf);
-}
-
-template<>
-void RewindableBinding<float>::setState(float state, TGE::SimObject* obj)
-{
-	char buf[512];
-	sprintf(buf, "%s::setState(%d,%f);", BindingNamespace.c_str(),obj->getId(), state);
-	TGE::Con::evaluatef(buf);
-}
-
-template<>
-void RewindableBinding<bool>::setState(bool state, TGE::SimObject* obj)
-{
-	char buf[512];
-	sprintf(buf, "%s::setState(%d,%d);", BindingNamespace.c_str(),obj->getId(), state);
-	TGE::Con::evaluatef(buf);
+	const char* stateval = StringMath::print(state);
+	executefnmspc(BindingNamespace.c_str(), "setState", 2, obj->getIdString(), stateval);
 }
 
 template<>
 void RewindableBinding<std::string>::setState(std::string state, TGE::SimObject* obj)
 {
-	char buf[512];
-	sprintf(buf, "%s::setState(%d,%s);", BindingNamespace.c_str(),obj->getId(), state.c_str());
-	TGE::Con::evaluatef(buf);
+	executefnmspc(BindingNamespace.c_str(), "setState", 2, obj->getIdString(), state.c_str());
 }
 
 // Interpolate State (Variable)
 template<>
 int RewindableBinding<int>::interpolateState(int one, int two, float ratio, float delta)
 {
-	char buf[512];
-	sprintf(buf,"$tempAPIVar = %s::interpolateState(%d,%d,%f,%f);", BindingNamespace.c_str(), one, two, ratio, delta);
-	TGE::Con::evaluatef(buf);
-	return TGE::Con::getIntVariable("$tempAPIVar");
+	std::string oneptr = std::to_string(one);
+	std::string twoptr = std::to_string(two);
+	std::string ratioptr = std::to_string(ratio);
+	std::string deltaptr = std::to_string(delta);
+	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, oneptr.c_str(), twoptr.c_str(), ratioptr.c_str(), deltaptr.c_str()));
 }
 
 template<>
 float RewindableBinding<float>::interpolateState(float one, float two, float ratio, float delta)
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::interpolateState(%f,%f,%f,%f);", BindingNamespace.c_str(), one, two, ratio, delta);
-	TGE::Con::evaluatef(buf);
-	return TGE::Con::getFloatVariable("$tempAPIVar");
+	std::string oneptr = std::to_string(one);
+	std::string twoptr = std::to_string(two);
+	std::string ratioptr = std::to_string(ratio);
+	std::string deltaptr = std::to_string(delta);
+	return torqueAtof(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, oneptr.c_str(), twoptr.c_str(), ratioptr.c_str(), deltaptr.c_str()));
 }
 
 template<>
 bool RewindableBinding<bool>::interpolateState(bool one, bool two, float ratio, float delta)
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::interpolateState(%d,%d,%f,%f);", BindingNamespace.c_str(), one, two, ratio, delta);
-	TGE::Con::evaluatef(buf);
-	return TGE::Con::getBoolVariable("$tempAPIVar");
+	std::string oneptr = std::to_string(one);
+	std::string twoptr = std::to_string(two);
+	std::string ratioptr = std::to_string(ratio);
+	std::string deltaptr = std::to_string(delta);
+	return torqueAtoi(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, oneptr.c_str(), twoptr.c_str(), ratioptr.c_str(), deltaptr.c_str()));
 }
 
 template<>
 std::string RewindableBinding<std::string>::interpolateState(std::string one, std::string two, float ratio, float delta)
 {
-	char buf[512];
-	sprintf(buf, "$tempAPIVar = %s::interpolateState(%s,%s,%f,%f);", BindingNamespace.c_str(), one.c_str(), two.c_str(), ratio, delta);
-	TGE::Con::evaluatef(buf);
-	return std::string(TGE::Con::getVariable("$tempAPIVar"));
+	const char* oneptr = one.c_str();
+	const char* twoptr = two.c_str();
+	std::string ratioptr = std::to_string(ratio);
+	std::string deltaptr = std::to_string(delta);
+	return std::string(executefnmspc(BindingNamespace.c_str(), "interpolateState", 4, oneptr, twoptr, ratioptr.c_str(), deltaptr.c_str()));
 }
 
 // OnRewind (Variable)
 void RewindableBindingBase::onRewind()
 {
-	char buf[512];
-	sprintf(buf,"%s::onRewind();", BindingNamespace.c_str());
-	TGE::Con::evaluatef(buf);
+	executefnmspc(BindingNamespace.c_str(), "onRewind", 0);
 }
 
 // OnRewind (Object)
 // OnRewind (Variable)
 void RewindableBindingBase::onRewind(TGE::SimObject* obj)
 {
-	char buf[512];
-	sprintf(buf,"%s::onRewind(%d);", BindingNamespace.c_str(),obj->getId());
-	TGE::Con::evaluatef(buf);
+	executefnmspc(BindingNamespace.c_str(), "onRewind", 1, StringMath::print(obj->getId()));
 }
 
 // RewindableState IO
@@ -286,4 +288,7 @@ RewindableState<T>::RewindableState(std::string bindingnamespace)
 template class RewindableState<int>;
 template class RewindableState<float>;
 template class RewindableState<bool>;
+template class RewindableBinding<int>;
+template class RewindableBinding<float>;
+template class RewindableBinding<bool>;
 template class RewindableState<std::string>;

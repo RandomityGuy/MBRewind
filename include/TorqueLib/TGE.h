@@ -870,14 +870,19 @@ namespace TGE
 		UNDEFVIRT(renderImage);
 		UNDEFVIRT(renderShadow);
 		UNDEFVIRT(calcClassRenderData);
-		VIRTFN(void, setHidden, (bool show), (show), TGEVIRT_SHAPEBASE_SETHIDDEN);
+		//VIRTFN(void, setHidden, (bool show), (show), TGEVIRT_SHAPEBASE_SETHIDDEN);
 		//UNDEFVIRT(onCollision);
 		//UNDEFVIRT(getSurfaceFriction);
 		//UNDEFVIRT(getBounceFriction);
 
+		MEMBERFN(void, setHidden, (bool hidden), (hidden), 0x40104B);
+
 
 		GETTERFNSIMP(F32, getFadeVal, TGEOFF_SHAPEBASE_FADEVAL);
 		SETTERFN(F32, setFadeVal, TGEOFF_SHAPEBASE_FADEVAL);
+
+		GETTERFNSIMP(bool, getHiddenGetter, TGEOFF_SHAPEBASE_HIDDEN);
+		SETTERFN(bool, setHiddenSetter, TGEOFF_SHAPEBASE_HIDDEN);
 
 		GETTERFNSIMP(TSThread*, getThread1, TGEOFF_SHAPEBASE_THREAD1);
 		GETTERFNSIMP(TSThread*, getThread2, TGEOFF_SHAPEBASE_THREAD2);
@@ -1534,11 +1539,67 @@ namespace TGE
 	{
 		FN(void, init, (), TGEADDR_NAMESPACE_INIT);
 
-		class Namespace {
+		FN(Namespace*, find, (const char* name, const char* package), 0x403B93);
+
+		GLOBALVAR(void*, gEvalState, 0x694A70);
+
+		class NamespaceEntry
+		{
+		public:
+			Namespace* mNamespace;
+			NamespaceEntry* mNext;
+			const char* mFunctionName;
+			S32 mType;
+			S32 mMinArgs;
+			S32 mMaxArgs;
+			const char* mUsage;
+			const char* mPackage;
+
+			MEMBERFN(const char*, execute, (S32 argc, const char** argv, void* state), (argc, argv, state), 0x4073AB);
+		};
+
+		class Namespace
+		{
+		public:
+			const char* mName;
+			const char* mPackage;
+
+			Namespace* mParent;
+			Namespace* mNext;
+			AbstractClassRep* mClassRep;
+			U32 mRefCountToParent;
+			NamespaceEntry* mEntryList;
+
+
 		public:
 			GETTERFNSIMP(const char *, getName, TGEOFF_NAMESPACE_NAME);
-			GETTERFNSIMP(Namespace *, getParent, TGEOFF_NAMESPACE_PARENT);
+			GETTERFNSIMP(Namespace*, getParent, TGEOFF_NAMESPACE_PARENT);
+			MEMBERFN(NamespaceEntry*, lookup, (const char* name), (name), 0x408008);
+			//MEMBERFN(NamepaceEntry*, lookup, (const char* name), (name), 0x408008);
 		};
+
+		//class NamespaceEntry
+		//{
+		//public:
+		//	//MEMBERFN(const char*, execute, (S32 argc), argc, 0x4073AB);
+		//	// MEMBERFN(const char*, execute, (S32 argc, const char* argv, void* state), (argc, argv, state), 0x4073AB);
+		//}
+
+		//class Namespace 
+		//{
+		//public:
+
+		//	//class Entry
+		//	//{
+		//	//public:
+		//	//	MEMBERFN(const char*, execute, (S32 argc, const char** argv, void* state), (argc, argv, state), 0x4073AB);
+		//	//}
+
+		//	GETTERFNSIMP(const char *, getName, TGEOFF_NAMESPACE_NAME);
+		//	GETTERFNSIMP(Namespace*, getParent, TGEOFF_NAMESPACE_PARENT);
+
+		//	// MEMBERFN(NamepaceEntry*, lookup, (const char* name), (name), 0x408008);
+		//};
 	}
 
 	class _StringTable

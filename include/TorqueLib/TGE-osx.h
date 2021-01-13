@@ -20,17 +20,8 @@
 #define DEBUG_ERRORF(fmt, ...)
 #endif
 
-// Determine macros and addresses to use based on host OS
-#if defined(_WIN32)
-#include "win32/InterfaceMacros-win32.h"
-#include "win32/Addresses-win32.h"
-#elif defined(__APPLE__)
 #include "linux/InterfaceMacros-linux.h"
 #include "osx/Addresses-osx.h"
-#elif defined(__linux)
-#include "linux/InterfaceMacros-linux.h"
-#include "linux/Addresses-linux.h"
-#endif
 
 namespace TGE
 {
@@ -330,6 +321,8 @@ namespace TGE
 		UNDEFVIRT(getSurfaceFriction);
 		UNDEFVIRT(getBounceFriction);
 		UNDEFVIRT(setHidden);
+
+		GETTERFNSIMP(bool, getHiddenGetter, 0x764);
 
 		GETTERFNSIMP(TSThread*, getThread1, 0x2C0);
 
@@ -726,6 +719,11 @@ namespace TGE
 			OVERLOAD_FN(void, (const char *nsName, const char *name, BoolCallback cb, const char *usage, S32 minArgs, S32 maxArgs),   TGEADDR_CON_ADDCOMMAND_6_BOOL);
 		} addCommand;
 
+		OVERLOAD_PTR{
+			OVERLOAD_FN(const char*, (SimObject * obj, int argc, ...), 0x3B420);
+			OVERLOAD_FN(const char*, (int argc, ...), TGEADDR_CON_EXECUTEF);
+		} executef;
+
 		// Variables
 		FN(const char *, getVariable, (const char *name), 0x03BA20);
 		FN(bool, getBoolVariable, (const char *name), 0x03BD50);
@@ -757,6 +755,42 @@ namespace TGE
 	namespace Namespace
 	{
 		FN(void, init, (), TGEADDR_NAMESPACE_INIT);
+
+		FN(Namespace*, find, (const char* name, const char* package), 0x33710);
+
+		GLOBALVAR(void*, gEvalState, 0x2FF2C0);
+
+		class NamespaceEntry
+		{
+		public:
+			Namespace* mNamespace;
+			NamespaceEntry* mNext;
+			const char* mFunctionName;
+			S32 mType;
+			S32 mMinArgs;
+			S32 mMaxArgs;
+			const char* mUsage;
+			const char* mPackage;
+
+			MEMBERFN(const char*, execute, (S32 argc, const char** argv, void* state), (argc, argv, state), 0x32BF0);
+		};
+
+		class Namespace
+		{
+		public:
+			const char* mName;
+			const char* mPackage;
+
+			Namespace* mParent;
+			Namespace* mNext;
+			AbstractClassRep* mClassRep;
+			U32 mRefCountToParent;
+			NamespaceEntry* mEntryList;
+
+
+		public:
+			MEMBERFN(NamespaceEntry*, lookup, (const char* name), (name), 0x335A0);
+		};
 	}
 
 	namespace ParticleEngine

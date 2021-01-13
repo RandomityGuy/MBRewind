@@ -171,6 +171,7 @@ set (REWIND_SRC
 	plugins/Rewind/RewindManager.cpp
 	plugins/Rewind/RewindApi.cpp
 	plugins/Rewind/MemoryStream.cpp
+	plugins/Rewind/WorkerThread.cpp
 
 	plugins/Rewind/Frame.h
 	plugins/Rewind/Rewind.h
@@ -178,6 +179,7 @@ set (REWIND_SRC
 	plugins/Rewind/StringMath.h
 	plugins/Rewind/RewindApi.h
 	plugins/Rewind/MemoryStream.h
+	plugins/Rewind/WorkerThread.h
 )
 
 # RewindPlugin
