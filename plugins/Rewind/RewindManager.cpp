@@ -1099,9 +1099,15 @@ Frame* RewindManager::getRealtimeFrameAtMs(float ms)
 	//basically do a binary search
 
 	if (ms < Frames[0].ms)
+	{
 		return new Frame(Frames[0]);
+		DebugPop("Leaving RewindManager::getRealtimeFrameAtMs");
+	}
 	if (ms > Frames.back().ms)
+	{
+		DebugPop("Leaving RewindManager::getRealtimeFrameAtMs");
 		return new Frame(Frames.back());
+	}
 
 	int lo = 0, hi = Frames.size() - 1;
 	int m;
@@ -1125,7 +1131,10 @@ Frame* RewindManager::getRealtimeFrameAtMs(float ms)
 	}
 
 	if (index0 == index1) //We did find the frame, no need to interpolate
+	{
+		DebugPop("Leaving RewindManager::getRealtimeFrameAtMs");
 		return new Frame(Frames[index0]);
+	}
 
 	if (index0 == -1 && index1 == -2)	//We didnt find the exact frame, need to interpolate
 	{
@@ -1153,9 +1162,15 @@ Frame* RewindManager::getFrameAtElapsedMs(float ms)
 	// scrubbing very specific replays, i have yet to find why it doesnt work for those and what causes those replays in the first place
 	// 8/1/2021: bruh fuck that, lets all forget the garbage that was the old algorithm
 	if (ms < Frames[0].elapsedTime)
+	{
+		DebugPop("Leaving RewindManager::getFrameAtElapsedMs");
 		return new Frame(Frames[0]);
+	}
 	if (ms > Frames.back().elapsedTime)
+	{
+		DebugPop("Leaving RewindManager::getFrameAtElapsedMs");
 		return NULL;
+	}
 
 	int lo = 0, hi = Frames.size() - 1;
 	int m;
@@ -1179,7 +1194,10 @@ Frame* RewindManager::getFrameAtElapsedMs(float ms)
 	}
 
 	if (index0 == index1) //We did find the frame, no need to interpolate
+	{
+		DebugPop("Leaving RewindManager::getFrameAtElapsedMs");
 		return new Frame(Frames[index0]);
+	}
 
 	if (index0 == -1 && index1 == -2)	//We didnt find the exact frame, need to interpolate
 	{
@@ -1203,7 +1221,11 @@ Frame* RewindManager::getFrameAtElapsedMs(float ms)
 Frame* RewindManager::getFrameAtMs(float ms,int index = -1,bool useElapsed)
 {
 	DebugPush("Entering RewindManager::getFrameAtMs(%f,%d,%d)",ms,index,useElapsed);
-	if (ms < 0) return NULL;
+	if (ms < 0)
+	{
+		DebugPop("Leaving RewindManager::getFrameAtMs");
+		return NULL;
+	}
 
 	if (index == -1) index = Frames.size() - 1;
 	if (index >= Frames.size()) index = Frames.size() - 1;
@@ -1266,9 +1288,17 @@ Frame* RewindManager::getFrameAtMs(float ms,int index = -1,bool useElapsed)
 Frame* RewindManager::getNextRewindFrame(float delta)
 {
 	DebugPush("Entering RewindManager::getNextRewindFrame(%f)", delta);
-	if (delta < 0) return NULL;
+	if (delta < 0)
+	{
+		DebugPop("Leaving RewindManager::getNextRewindFrame");
+		return NULL;
+	}
 
-	if (Frames.size() == 0) return NULL;
+	if (Frames.size() == 0)
+	{
+		DebugPop("Leaving RewindManager::getNextRewindFrame");
+		return NULL;
+	}
 
 	if (Frames.size() >= 2)
 	{
@@ -1349,7 +1379,11 @@ Frame* RewindManager::getNextFrame(float delta)
 
 	Frame* testF = getFrameAtElapsedMs(streamTimePosition); 
 
-	if (testF == NULL) return NULL;
+	if (testF == NULL)
+	{
+		DebugPop("Leaving RewindManager::getNextFrame");
+		return NULL;
+	}
 
 	Frame* f = new Frame(*testF);
 
@@ -1372,7 +1406,11 @@ Frame* RewindManager::getNextNonElapsedFrame(float delta)
 
 	Frame* testF = getFrameAtMs(streamTimePosition, currentIndex + 3,false); //To be safe, i used 3, can be any positive arbitrary number
 
-	if (testF == NULL) return NULL;
+	if (testF == NULL)
+	{
+		DebugPop("Leaving RewindManager::getNextNonElapsedFrame");
+		return NULL;
+	}
 
 	Frame* f = new Frame(*testF);
 

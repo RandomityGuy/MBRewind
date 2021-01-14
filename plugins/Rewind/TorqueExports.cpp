@@ -119,6 +119,7 @@ ConsoleFunction(unregisterRewindable, void, 2, 2, "unregisterRewindable(string n
 					RewindableBindingBase* base2 = *(ghostReplayManager.rewindableBindings.begin() + i);
 					ghostReplayManager.rewindableBindings.erase(ghostReplayManager.rewindableBindings.begin() + i);
 					delete base2;
+					DebugPop("Leaving unregisterRewindable()");
 					return;
 				}
 			}
@@ -126,7 +127,7 @@ ConsoleFunction(unregisterRewindable, void, 2, 2, "unregisterRewindable(string n
 		}
 	}
 
-	DebugPush("Entering unregisterRewindable()");
+	DebugPop("Leaving unregisterRewindable()");
 }
 
 ConsoleFunction(callOnRewindEvent, void, 1, 1, "callOnRewindEvent()")

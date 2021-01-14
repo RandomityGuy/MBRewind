@@ -4,6 +4,7 @@
 #include "RewindApi.h"
 #include <thread>
 #include "WorkerThread.h"
+#include <assert.h>
 
 template<typename... Args>
 void DebugPrint(const char* printdata,Args... args)
@@ -16,6 +17,8 @@ void DebugPrint(const char* printdata,Args... args)
 			out += std::string("  ");
 		out += std::string(printdata);
 		TGE::Con::printf(out.c_str(), args...);
+
+		assert(debugIndent >= 0);
 	}
 }
 
@@ -24,6 +27,7 @@ void DebugPush(const char* printdata, Args... args)
 {
 	extern int debugIndent;
 	debugIndent++;
+	assert(debugIndent >= 0);
 	DebugPrint(printdata, args...);
 }
 
@@ -32,6 +36,7 @@ void DebugPop(const char* printdata, Args... args)
 {
 	extern int debugIndent;
 	debugIndent--;
+	assert(debugIndent >= 0);
 	DebugPrint(printdata, args...);
 }
 

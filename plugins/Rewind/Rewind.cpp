@@ -291,7 +291,7 @@ void GetMissionState(TGE::SimGroup* group, MissionState* missionstate)
 			// Finally we get the states of the user defined objects
 			if (IsRewindableType(type))
 			{
-				DebugPrint("Getting RewindableStates (SceneObject)");
+				DebugPush("Getting RewindableStates (SceneObject)");
 				const char* datablock = static_cast<TGE::GameBase*>(obj)->getDataBlock()->getName();
 
 				for (int i = 0; i < rewindManager.rewindableBindings.size(); i++)
@@ -581,7 +581,7 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 
 					if (strcmp(binding->BindingNamespace.c_str(), datablock) == 0)
 					{
-						DebugPrint("Setting RewindableState %s::%d", binding->BindingNamespace.c_str(), binding->getStorageType());
+						DebugPush("Setting RewindableState %s::%d", binding->BindingNamespace.c_str(), binding->getStorageType());
 
 						int storagetype = binding->getStorageType();
 
@@ -643,6 +643,7 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 						DebugPop("Leaving Set RewindableState");
 					}
 				}
+
 			}
 
 		}
