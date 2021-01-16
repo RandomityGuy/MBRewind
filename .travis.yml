@@ -9,7 +9,7 @@ branches:
 
 script:
   - cmake CMakeLists.txt
-  - cmake  --build . --target Rewind
+  - cmake  --build . --target Rewind -DMBPBUILD:BOOL="True"
 
 deploy:
   provider: releases
