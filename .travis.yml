@@ -8,8 +8,8 @@ branches:
   - master
 
 script:
-  - cmake CMakeLists.txt
-  - cmake  --build . --target Rewind -DMBPBUILD:BOOL=ON
+  - cmake -DMBPBUILD:BOOL=ON CMakeLists.txt
+  - cmake  --build . --target Rewind
 
 deploy:
   provider: releases
