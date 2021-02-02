@@ -865,7 +865,7 @@ namespace TGE
 		namespace Marble
 		{
 			RAWMEMBERFN(TGE::Marble, void, doPowerUp, (int id), TGEADDR_MARBLE_DOPOWERUP);
-			RAWMEMBERFN(TGE::Marble, void, advancePhysics, (const Move *move, U32 delta), TGEADDR_MARBLE_ADVANCEPHYSICS);
+			RAWMEMBERFN(TGE::Marble, void, advancePhysics, (Move *move, U32 delta), TGEADDR_MARBLE_ADVANCEPHYSICS);
 		}
 
 		namespace GameBase
