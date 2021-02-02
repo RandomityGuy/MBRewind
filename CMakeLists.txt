@@ -200,6 +200,10 @@ endif()
 # Remove the "lib" prefix from libraries
 set_target_properties (PluginLoader TorqueLib Rewind PROPERTIES PREFIX "")
 
+if (MBPBUILD)
+	set_target_properties(Rewind PROPERTIES PREFIX "MBP")
+endif()
+
 # Install rules 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set (CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/install" CACHE PATH "default install path" FORCE)

@@ -40,6 +40,8 @@ bool physicsOn = true;
 bool lockTransforms = false;
 U32 timeDelta = 0;
 
+bool disableMovement = false;
+
 F32 replayTimeDelta = 0;
 
 int debugIndent = 0;
@@ -141,6 +143,13 @@ ConsoleFunction(setGame, void, 2, 2, "setGame(string game)")
 	rewindManager.game = std::string(argv[1]);
 	ghostReplayManager.game = std::string(argv[1]);
 	DebugPop("Leaving setGame()");
+}
+
+ConsoleFunction(setMovement, void, 2, 2, "setMovement(bool enabled)")
+{
+	DebugPush("Entering setMovement(%s)", argv[1]);
+	disableMovement = !atoi(argv[1]);
+	DebugPop("Leaving setMovement()");
 }
 
 //---------------------------------------------------------------------------------------
@@ -398,11 +407,22 @@ ConsoleFunction(lockTransforms, void, 2, 2, "lockTransforms(bool lock)")
 	lockTransforms = atoi(argv[1]);
 }
 
-TorqueOverrideMember(void, Marble::advancePhysics, (TGE::Marble* thisObj, const TGE::Move* move, U32 delta), origAdvPhysics)
+TorqueOverrideMember(void, Marble::advancePhysics, (TGE::Marble* thisObj, TGE::Move* move, U32 delta), origAdvPhysics)
 {
 
 	MatrixF transform;
 	Point3D vel, spin;
+
+	if (disableMovement)
+	{
+		move->px = 0;
+		move->py = 0;
+		move->pz = 0;
+		move->x = 0;
+		move->y = 0;
+		move->z = 0;
+	}
+
 	if (lockTransforms)
 	{
 		transform = thisObj->getTransform();

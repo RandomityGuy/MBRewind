@@ -403,11 +403,13 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 
 				DebugPrint("Setting PathedInterior State %d: %f %f", obj->getId(), state.pathPosition, state.targetPosition);
 
-				if (state.pathPosition != prevstate.pathPosition)
-					setPathPosition(obj->getId(), state.pathPosition);		
+				//if (state.pathPosition != prevstate.pathPosition)
+					setPathPosition(obj->getId(), state.pathPosition);
+					
+					setField(obj, "pathPos", TGE::StringTable->insert(StringMath::print(state.pathPosition), false));
 
-				if (state.targetPosition != prevstate.targetPosition)
-					setField(obj, "targetPos", StringMath::print(state.targetPosition));
+				//if (state.targetPosition != prevstate.targetPosition)
+					setField(obj, "targetPos", TGE::StringTable->insert(StringMath::print(state.targetPosition), false));
 			}
 			if (strcmp(type, "Item") == 0)
 			{
@@ -462,7 +464,7 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 						TGE::Con::executef(obj, 4, "startFade", "0", "0", "0");
 					}
 
-					setField(obj, "respawnTime", StringMath::print(state > 0 ? state : 0));
+					setField(obj, "respawnTime", TGE::StringTable->insert(StringMath::print(state > 0 ? state : 0), false));
 					
 				}
 
@@ -507,7 +509,7 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 						TGE::Con::executef(obj, 2, "setDamageState", "Enabled");
 
 					}
-					setField(obj, "resetClock", StringMath::print(state > 0 ? state : 0));
+					setField(obj, "resetClock", TGE::StringTable->insert(StringMath::print(state > 0 ? state : 0),false));
 				}
 				if (missionstate->trapdoorpos.size() != 0)
 				{
@@ -532,7 +534,7 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 						//Set Open
 						int open = missionstate->trapdooropen[0];
 						TGE::Sim::cancelEvent(atoi(getField(obj, "openSchedule")));
-						setField(obj, "openTime", StringMath::print(open < 0 ? 0 : open));
+						setField(obj, "openTime", TGE::StringTable->insert(StringMath::print(open < 0 ? 0 : open),false));
 
 						if (open > 0)
 						{
@@ -554,7 +556,7 @@ void SetMissionState(TGE::SimGroup* group, MissionState* missionstate,MissionSta
 							char buf4[96];
 							sprintf(buf4, "%d.closeSchedule = schedule(%d,%d,\"Trapdoor_close\",%d);", obj->getId(), close, obj->getId(), obj->getId());
 							TGE::Con::evaluatef(buf4);
-							setField(obj, "closeTime", StringMath::print(close));
+							setField(obj, "closeTime", TGE::StringTable->insert(StringMath::print(close),false));
 						}
 						else
 						{
@@ -707,9 +709,9 @@ void SetCheckpointState(TGE::Marble* player, CheckpointState cs)
 {
 	DebugPush("Entering GetCheckpointState");
 	setField(player, "checkPoint", cs.Obj.c_str());
-	setField(player, "checkPointGemCount", StringMath::print(cs.gemCount));
+	setField(player, "checkPointGemCount", TGE::StringTable->insert(StringMath::print(cs.gemCount),false));
 	setField(player, "checkPointGemStates", cs.gemStates.c_str());
-	setField(player, "checkPointPowerup", StringMath::print(cs.powerup));
+	setField(player, "checkPointPowerup", TGE::StringTable->insert(StringMath::print(cs.powerup),false));
 	setField(player, "checkPointGravity", cs.gravity.c_str());
 	TGE::Con::setIntVariable("$respawnCounter", cs.respawnCounter);
 	setField(player, "checkPointRespawnOffset", cs.respawnOffset.c_str());
@@ -874,6 +876,8 @@ void RewindFrame(Frame* f)
 	TGE::SimGroup* MissionGroup = static_cast<TGE::SimGroup*>(TGE::Sim::findObject("MissionGroup"));
 	TGE::SimObject* PlayGui = TGE::Sim::findObject("PlayGui");
 
+	int totalTime = atoi(getField(PlayGui, "totalTime"));
+
 	// Well get the moving platforms stored
 	if (rewindManager.pathedInteriors == NULL)
 	{
@@ -938,7 +942,7 @@ void RewindFrame(Frame* f)
 
 	DebugPrint("Setting Time %d",framedata->ms);
 	TGE::Con::executef(PlayGui, 2, "setTime", TGE::StringTable->insert(StringMath::print(framedata->ms), false));
-	setField(PlayGui, "totalTime", StringMath::print(framedata->elapsedTime));
+	setField(PlayGui, "totalTime", TGE::StringTable->insert(StringMath::print(framedata->elapsedTime), false));
 
 
 	TGE::Marble* ClientMarble = static_cast<TGE::Marble*>(TGE::Sim::findObject(TGE::Con::executef(1, "ClientMarble")));
@@ -1014,7 +1018,7 @@ void RewindFrame(Frame* f)
 	TGE::Con::setIntVariable("$Game::NextStateTime", framedata->nextstatetime);
 
 	DebugPrint("Setting GemCount %d", framedata->gemcount);
-	setField(LocalClientConnection, "gemCount", StringMath::print(framedata->gemcount));
+	setField(LocalClientConnection, "gemCount", TGE::StringTable->insert(StringMath::print(framedata->gemcount),false));
 
 	DebugPrint("Setting GameState %s", framedata->gamestate.c_str());
 	TGE::Con::executef(2, "setRewindGameState", framedata->gamestate.c_str());
@@ -1107,7 +1111,8 @@ void RewindFrame(Frame* f)
 
 	DebugPrint("Setting Powerup %d", framedata->powerup);
 	TGE::Con::executef(player, 2, "setPowerup", TGE::StringTable->insert(StringMath::print(framedata->powerup), true));
-	delete framedata;
+	if (framedata != &previousFrame)
+		delete framedata;
 	DebugPop("Leaving RewindFrame");
 }
 

@@ -52,7 +52,20 @@ namespace TGE
 	class SceneState;
 	class SceneGraph;
 
-	struct Move;
+	struct Move
+	{
+		// packed storage rep, set in clamp
+		S32 px, py, pz;
+		U32 pyaw, ppitch, proll;
+		F32 x, y, z;          // float -1 to 1
+		F32 yaw, pitch, roll; // 0-2PI
+		U32 id;               // sync'd between server & client - debugging tool.
+		U32 sendCount;
+
+		bool freeLook;
+		bool trigger[4];
+
+	};
 }
 
 // TGE callback types
@@ -728,7 +741,7 @@ namespace TGE
 		VIRTFN(void, processTick, (const Move* move), (move), TGEVIRT_GAMEBASE_PROCESSTICK);
 		VIRTFN(void, interpolateTick, (F32 delta), (delta), TGEVIRT_GAMEBASE_INTERPOLATETICK);
 		VIRTFN(void, advanceTime, (F32 delta), (delta), TGEVIRT_GAMEBASE_ADVANCETIME);
-		VIRTFN(void, advancePhysics, (const Move* move, U32 delta), (move, delta), TGEVIRT_GAMEBASE_ADVANCEPHYSICS);
+		VIRTFN(void, advancePhysics, (Move* move, U32 delta), (move, delta), TGEVIRT_GAMEBASE_ADVANCEPHYSICS);
 		VIRTFNSIMP(Point3D, getVelocity, TGEVIRT_GAMEBASE_GETVELOCITY);
 		VIRTFN(void*, getForce, (Point3F& arg1, Point3F* arg2), (arg1, arg2), TGEVIRT_GAMEBASE_GETFORCE);
 		//UNDEFVIRT(getVelocity);
@@ -2206,7 +2219,7 @@ namespace TGE
 		namespace Marble
 		{
 			RAWMEMBERFN(TGE::Marble, void, doPowerUp, (S32 powerUpId), TGEADDR_MARBLE_DOPOWERUP);
-			RAWMEMBERFN(TGE::Marble, void, advancePhysics, (const Move *move, U32 delta), TGEADDR_MARBLE_ADVANCEPHYSICS);
+			RAWMEMBERFN(TGE::Marble, void, advancePhysics, (Move *move, U32 delta), TGEADDR_MARBLE_ADVANCEPHYSICS);
 			RAWMEMBERFN(TGE::Marble, void, advanceCamera, (const Move *move, U32 delta), TGEADDR_MARBLE_ADVANCECAMERA);
 			RAWMEMBERFN(TGE::Marble, U32, packUpdate, (TGE::NetConnection *connection, U32 mask, TGE::BitStream *stream), TGEADDR_MARBLE_PACKUPDATE);
 			RAWMEMBERFN(TGE::Marble, void, unpackUpdate, (TGE::NetConnection *connection, TGE::BitStream *stream), TGEADDR_MARBLE_UNPACKUPDATE);

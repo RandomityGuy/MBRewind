@@ -987,6 +987,11 @@ RewindableState<T> RewindManager::InterpolateRewindableState(RewindableState<T> 
 
 Frame RewindManager::interpolateFrame(Frame one,Frame two,float ratio,float delta)
 {
+	if (ratio > 1 || ratio < 0)
+	{
+		// Yeah uh we aint handling this shit, go crash
+		assert(false);
+	}
 
 	DebugPush("Entering RewindManager::interpolateFrame(one,two,%f,%f)", ratio,delta);
 	Frame f = Frame();
