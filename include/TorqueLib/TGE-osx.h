@@ -33,7 +33,20 @@ namespace TGE
 	class ResourceObject;
 	class NetConnection;
 	class BitStream;
-	struct Move;
+	struct Move
+	{
+		// packed storage rep, set in clamp
+		S32 px, py, pz;
+		U32 pyaw, ppitch, proll;
+		F32 x, y, z;          // float -1 to 1
+		F32 yaw, pitch, roll; // 0-2PI
+		U32 id;               // sync'd between server & client - debugging tool.
+		U32 sendCount;
+
+		bool freeLook;
+		bool trigger[4];
+
+	};
 }
 
 // TGE callback types
