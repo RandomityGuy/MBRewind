@@ -12,6 +12,7 @@
 #include "Rewind.h"
 #include "RewindApi.h"
 #include "WorkerThread.h"
+#include "Logging.h"
 #ifdef __APPLE__
 #include <sys/stat.h>
 #include <unistd.h>
@@ -63,6 +64,19 @@ ConsoleFunction(tickAsync, void, 1, 1, "tickAsync()")
 	}
 	executeQueue.clear();
 	executeMutex.unlock();
+}
+
+//---------------------------------------------------------------------------------------
+// Logging
+
+#ifdef __APPLE__
+TorqueOverrideFastcall(void, Con::_printf, (TGE::ConsoleLogEntry::Level level, TGE::ConsoleLogEntry::Type type, const char* fmt, va_list argptr), originalPrintf)
+#else
+TorqueOverride(void, Con::_printf, (TGE::ConsoleLogEntry::Level level, TGE::ConsoleLogEntry::Type type, const char* fmt, va_list argptr), originalPrintf)
+#endif
+{
+	logDebug(fmt, argptr);
+	originalPrintf(level, type, fmt, argptr);
 }
 
 
@@ -889,7 +903,7 @@ ConsoleFunction(GetMPAt, int, 2, 2, "GetMPAt(int index)")
 
 PLUGINCALLBACK void preEngineInit(PluginInterface *plugin)
 {
-
+	initiateLogging();
 }
 
 PLUGINCALLBACK void postEngineInit(PluginInterface *plugin)
@@ -899,5 +913,5 @@ PLUGINCALLBACK void postEngineInit(PluginInterface *plugin)
 
 PLUGINCALLBACK void engineShutdown(PluginInterface *plugin)
 {
-
+	stopLogging();
 }

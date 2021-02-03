@@ -5,6 +5,7 @@
 #include <thread>
 #include "WorkerThread.h"
 #include <assert.h>
+#include "Logging.h"
 
 template<typename... Args>
 void DebugPrint(const char* printdata,Args... args)
@@ -16,7 +17,9 @@ void DebugPrint(const char* printdata,Args... args)
 		for (int i = 0; i < debugIndent; i++)
 			out += std::string("  ");
 		out += std::string(printdata);
-		TGE::Con::printf(out.c_str(), args...);
+
+		logDebugV(out.c_str(), args...);
+		//TGE::Con::printf(out.c_str(), args...);
 
 		assert(debugIndent >= 0);
 	}
