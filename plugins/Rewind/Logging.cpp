@@ -1,21 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <filesystem>
 #include <TorqueLib/TGE.h>
 #include <TorqueLib/QuickOverride.h>
 #include "Logging.h"
+#ifdef __APPLE__
+#include <uninstd.h>
+#else
+#include <direct.h>
+#endif
 
 FILE* f;
 
 void initiateLogging()
 {
-	std::filesystem::path path = std::filesystem::current_path();
-	path /= "rewind.log";
-	f = fopen(path.u8string().c_str(),"w");
+	std::string path = std::string(getcwd(NULL, 0));
+#ifdef __APPLE__
+	path += std::string("/rewind.log");
+#else
+	path += std::string("\\rewind.log");
+#endif
+	f = fopen(path.c_str(),"w");
 
-
-	TGE::Con::printf("Opened %s for logging purposes", path.u8string().c_str());
+	TGE::Con::printf("Opened %s for logging purposes", path.c_str());
 }
 
 void logDebug(const char* str, va_list args)

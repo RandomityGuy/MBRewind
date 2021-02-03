@@ -4,7 +4,7 @@ project (MBExtender C CXX ASM)
 
 if (UNIX)
 	# Set Unix-specific flags
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-variable -std=c++17 -fvisibility=hidden")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-variable -std=c++14 -fvisibility=hidden")
 	enable_language (ASM)
 
 	# Force 32 bit
@@ -17,7 +17,7 @@ if (UNIX)
 elseif (MSVC)
 	# Set VC++ settings
 	cmake_policy (SET CMP0054 NEW) # CMake complains otherwise when we call enable_language
-	set (CMAKE_CXX_STANDARD 17)
+	set (CMAKE_CXX_STANDARD 14)
 	enable_language (ASM_MASM)
 	set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO") # SAFESEH needs to be disabled because LDE64 doesn't support it
 
