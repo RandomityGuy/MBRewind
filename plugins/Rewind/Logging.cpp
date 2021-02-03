@@ -5,7 +5,7 @@
 #include <TorqueLib/QuickOverride.h>
 #include "Logging.h"
 #ifdef __APPLE__
-#include <uninstd.h>
+#include <unistd.h>
 #else
 #include <direct.h>
 #endif
