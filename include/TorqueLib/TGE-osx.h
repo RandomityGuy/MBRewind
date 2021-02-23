@@ -337,7 +337,8 @@ namespace TGE
 		UNDEFVIRT(onCollision);
 		UNDEFVIRT(getSurfaceFriction);
 		UNDEFVIRT(getBounceFriction);
-		UNDEFVIRT(setHidden);
+
+		MEMBERFN(void, setHidden, (bool hidden), (hidden), 0x95BD0);
 
 		GETTERFNSIMP(bool, getHiddenGetter, 0x764);
 
