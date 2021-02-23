@@ -10,8 +10,6 @@ branches:
 script:
   - cmake -DMBPBUILD:BOOL=ON CMakeLists.txt
   - cmake  --build . --target Rewind
-  - cmake CMakeLists.txt
-  - cmake  --build . --target Rewind
 
 deploy:
   provider: releases

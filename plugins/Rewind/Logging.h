@@ -1,19 +1,6 @@
 #pragma once
 #include <TorqueLib/TGE.h>
 
-template<typename T>
-inline void deleteSafe(T* obj)
-{
-	DebugPrint("Attempting delete %s", typeid(T).name());
-	if (obj != NULL)
-	{
-		DebugPrint("Success");
-		delete obj;
-	}
-	else
-		DebugPrint("Failed");
-}
-
 void initiateLogging();
 
 void logDebug(const char* str, va_list);
@@ -56,4 +43,17 @@ void DebugPop(const char* printdata, Args... args)
 	debugIndent--;
 	assert(debugIndent >= 0);
 	DebugPrint(printdata, args...);
+}
+
+template<typename T>
+inline void deleteSafe(T* obj)
+{
+	DebugPrint("Attempting delete %s", typeid(T).name());
+	if (obj != NULL)
+	{
+		DebugPrint("Success");
+		delete obj;
+	}
+	else
+		DebugPrint("Failed");
 }
