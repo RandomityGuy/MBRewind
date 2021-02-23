@@ -55,3 +55,6 @@ void stopLogging()
 		fclose(f);
 	}
 }
+
+
+

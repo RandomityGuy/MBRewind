@@ -6,6 +6,7 @@
 #include <map>
 #include <thread>
 #include "MemoryStream.h"
+#include "Logging.h"
 
 
 std::vector<std::string> SplitStringDelim(std::string str, char delim);
@@ -383,7 +384,7 @@ RewindManager::RewindManager(const RewindManager& rw)
 RewindManager::~RewindManager()
 {
 	if (this->pathedInteriors != NULL)
-		delete this->pathedInteriors;
+		deleteSafe(this->pathedInteriors);
 }
 
 
@@ -944,7 +945,7 @@ void RewindManager::clear(bool write, Worker* worker)
 		RewindManager* copy = new RewindManager(*this);
 		worker->addTask([=]() {
 			copy->save(replayPath);
-			delete copy;
+			deleteSafe(copy);
 			// DebugPop("Leaving RewindManager::clear");
 			});
 	}
@@ -1392,7 +1393,7 @@ Frame* RewindManager::getNextFrame(float delta)
 
 	Frame* f = new Frame(*testF);
 
-	delete testF;
+	deleteSafe(testF);
 	
 	DebugPop("Leaving RewindManager::getNextFrame");
 	return f;
@@ -1419,7 +1420,7 @@ Frame* RewindManager::getNextNonElapsedFrame(float delta)
 
 	Frame* f = new Frame(*testF);
 
-	delete testF;
+	deleteSafe(testF);
 
 	if (currentIndex >= Frames.size())
 	{
@@ -1483,7 +1484,7 @@ void RewindManager::spliceReplayFromMs(float ms)
 	}
 	if (atMs != NULL)
 		newFrames.push_back(*atMs);
-	delete atMs;
+	deleteSafe(atMs);
 	Frames = newFrames;
 	DebugPop("Leaving RewindManager::spliceReplayFromMs");
 }

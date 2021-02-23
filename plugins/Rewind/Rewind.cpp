@@ -7,6 +7,7 @@
 #include "Rewind.h"
 #include "RewindApi.h"
 #include "StringMath.h"
+#include "Logging.h"
 
 // Gets the current thread position of the staticshape
 float getThreadPos(int staticshape)
@@ -1112,7 +1113,7 @@ void RewindFrame(Frame* f)
 	DebugPrint("Setting Powerup %d", framedata->powerup);
 	TGE::Con::executef(player, 2, "setPowerup", TGE::StringTable->insert(StringMath::print(framedata->powerup), true));
 	if (framedata != &previousFrame)
-		delete framedata;
+		deleteSafe(framedata);
 	DebugPop("Leaving RewindFrame");
 }
 
