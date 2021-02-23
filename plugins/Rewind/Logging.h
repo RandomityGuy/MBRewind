@@ -32,7 +32,11 @@ void DebugPush(const char* printdata, Args... args)
 {
 	extern int debugIndent;
 	debugIndent++;
-	assert(debugIndent >= 0);
+	if (debugIndent < 0)
+	{
+		DebugPrint("Bad indent level, resetting to 0");
+		debugIndent = 0;
+	}
 	DebugPrint(printdata, args...);
 }
 
@@ -41,7 +45,11 @@ void DebugPop(const char* printdata, Args... args)
 {
 	extern int debugIndent;
 	debugIndent--;
-	assert(debugIndent >= 0);
+	if (debugIndent < 0)
+	{
+		DebugPrint("Bad indent level, resetting to 0");
+		debugIndent = 0;
+	}
 	DebugPrint(printdata, args...);
 }
 

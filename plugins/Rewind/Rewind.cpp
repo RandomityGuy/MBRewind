@@ -708,7 +708,7 @@ CheckpointState GetCheckpointState(TGE::Marble* player)
 
 void SetCheckpointState(TGE::Marble* player, CheckpointState cs)
 {
-	DebugPush("Entering GetCheckpointState");
+	DebugPush("Entering SetCheckpointState");
 	setField(player, "checkPoint", cs.Obj.c_str());
 	setField(player, "checkPointGemCount", TGE::StringTable->insert(StringMath::print(cs.gemCount),false));
 	setField(player, "checkPointGemStates", cs.gemStates.c_str());
@@ -716,7 +716,7 @@ void SetCheckpointState(TGE::Marble* player, CheckpointState cs)
 	setField(player, "checkPointGravity", cs.gravity.c_str());
 	TGE::Con::setIntVariable("$respawnCounter", cs.respawnCounter);
 	setField(player, "checkPointRespawnOffset", cs.respawnOffset.c_str());
-	DebugPop("Leaving GetCheckpointState");
+	DebugPop("Leaving SetCheckpointState");
 }
 
 #endif

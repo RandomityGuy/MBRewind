@@ -865,14 +865,17 @@ TorqueOverrideMember(void, ShapeBase::onRemove, (TGE::ShapeBase *thisObj), origO
 		if (strcmp(thisObj->getDataBlock()->getName(), "TrapDoor")==0)
 		{
 			std::vector<TGE::TSShapeInstance*>::iterator it = std::find(trapdoorShapeInstances.begin(), trapdoorShapeInstances.end(), thisObj->getTSShapeInstance());
-			trapdoorShapeInstances.erase(it);
+			if (it != trapdoorShapeInstances.end())
+				trapdoorShapeInstances.erase(it);
 #ifdef _DEBUG
 			std::vector<TGE::ShapeBase*>::iterator it2 = std::find(clientTrapdoors.begin(), clientTrapdoors.end(), thisObj);
 			clientTrapdoors.erase(it2);
 			TGE::Con::printf("Removing Shape %s to ClientList", thisObj->getIdString());
 #endif
 		}
-		serverToClientSBMap.erase(thisObj->getId());
+		auto it = serverToClientSBMap.find(thisObj->getId());
+		if (it != serverToClientSBMap.end())
+			serverToClientSBMap.erase(thisObj->getId());
 	}
 	origOnRemoveShapeBase(thisObj);
 }
