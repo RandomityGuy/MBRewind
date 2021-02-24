@@ -654,7 +654,7 @@ namespace TGE
 	// Structure for time events
 	struct TimeEvent : public Event
 	{
-		U32 deltaTime;
+		U32 elapsedTime;
 
 		TimeEvent()
 		{
