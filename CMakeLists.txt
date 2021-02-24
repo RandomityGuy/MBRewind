@@ -212,6 +212,9 @@ elseif (APPLE)
 endif()
 
 # DiscordRPC plugin
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/rapidjson)
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/discord-rpc)
+
 if (MSVC)
 	set (DISCORDRPC_SRC
 		plugins/DiscordRPC/main.cpp
@@ -229,13 +232,7 @@ else()
 endif()
 
 add_library(DiscordRPC MODULE ${DISCORDRPC_SRC})
-target_link_libraries(DiscordRPC TorqueLib)
-if (MSVC)
-	target_link_libraries(DiscordRPC ${CMAKE_SOURCE_DIR}/discord-rpc.lib)
-	set_target_properties(DiscordRPC PROPERTIES COMPILE_FLAGS "/MD")
-else()
-	target_link_libraries(DiscordRPC ${CMAKE_SOURCE_DIR}/libdiscord-rpc.a)
-endif()
+target_link_libraries(DiscordRPC TorqueLib discord-rpc)
 
 # FrameRateUnlock
 set (FRAMERATEUNLOCK_SRC
