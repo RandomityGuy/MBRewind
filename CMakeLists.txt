@@ -195,8 +195,10 @@ else()
 	set(TARGETLIB Rewind)
 endif()
 
+
 add_library (${TARGETLIB} MODULE ${REWIND_SRC})
 target_include_directories(${TARGETLIB} PRIVATE zlib)
+
 
 option(MBPBUILD "MBP Features" OFF)
 if (MBPBUILD)
@@ -209,8 +211,63 @@ elseif (APPLE)
 	target_link_libraries(${TARGETLIB} z)
 endif()
 
+# DiscordRPC plugin
+if (MSVC)
+	set (DISCORDRPC_SRC
+		plugins/DiscordRPC/main.cpp
+	
+		plugins/DiscordRPC/include/win/discord_register.h
+		plugins/DiscordRPC/include/win/discord_rpc.h
+	)
+else()
+	set (DISCORDRPC_SRC
+		plugins/DiscordRPC/main.cpp
+	
+		plugins/DiscordRPC/include/osx/discord_register.h
+		plugins/DiscordRPC/include/osx/discord_rpc.h
+	)
+endif()
+
+add_library(DiscordRPC MODULE ${DISCORDRPC_SRC})
+target_link_libraries(DiscordRPC TorqueLib)
+if (MSVC)
+	target_link_libraries(DiscordRPC ${CMAKE_SOURCE_DIR}/discord-rpc.lib)
+else()
+	target_link_libraries(DiscordRPC ${CMAKE_SOURCE_DIR}/libdiscord-rpc.a)
+endif()
+set_target_properties(DiscordRPC PROPERTIES COMPILE_FLAGS "/MD")
+
+# FrameRateUnlock
+set (FRAMERATEUNLOCK_SRC
+	plugins/FrameRateUnlock/FrameRateUnlock.cpp
+	plugins/FrameRateUnlock/GameTimer.hpp
+)
+if (WIN32)
+	set (FRAMERATEUNLOCK_SRC ${FRAMERATEUNLOCK_SRC}
+		plugins/FrameRateUnlock/win32/HighPerformanceTimer-win32.cpp
+		plugins/FrameRateUnlock/win32/HighPerformanceTimer-win32.hpp
+		plugins/FrameRateUnlock/win32/MultimediaTimer-win32.cpp
+		plugins/FrameRateUnlock/win32/MultimediaTimer-win32.hpp
+	)
+elseif (APPLE)
+	set (FRAMERATEUNLOCK_SRC ${FRAMERATEUNLOCK_SRC}
+		plugins/FrameRateUnlock/osx/MachTimer-osx.cpp
+		plugins/FrameRateUnlock/osx/MachTimer-osx.hpp
+	)
+elseif (UNIX)
+	set (FRAMERATEUNLOCK_SRC ${FRAMERATEUNLOCK_SRC}
+		plugins/FrameRateUnlock/linux/MonotonicTimer-linux.cpp
+		plugins/FrameRateUnlock/linux/MonotonicTimer-linux.hpp
+	)
+endif ()
+add_library (FrameRateUnlock MODULE ${FRAMERATEUNLOCK_SRC})
+target_link_libraries (FrameRateUnlock TorqueLib)
+if (WIN32)
+	target_link_libraries (FrameRateUnlock winmm)
+endif ()
+
 # Remove the "lib" prefix from libraries
-set_target_properties (PluginLoader TorqueLib ${TARGETLIB} PROPERTIES PREFIX "")
+set_target_properties (PluginLoader TorqueLib DiscordRPC FrameRateUnlock ${TARGETLIB} PROPERTIES PREFIX "")
 
 if (MBPBUILD)
 	set_target_properties(${TARGETLIB} PROPERTIES PREFIX "MBP")
@@ -223,6 +280,7 @@ endif()
 install (TARGETS PluginLoader RUNTIME DESTINATION bin LIBRARY DESTINATION bin)
 install (TARGETS TorqueLib RUNTIME DESTINATION bin LIBRARY DESTINATION bin ARCHIVE DESTINATION lib)
 install (TARGETS ${TARGETLIB} DESTINATION bin/plugins)
+install (TARGETS DiscordRPC DESTINATION bin/plugins)
 #if (WIN32)
 	#install (TARGETS MBGPatcher DESTINATION bin)
 if (UNIX)

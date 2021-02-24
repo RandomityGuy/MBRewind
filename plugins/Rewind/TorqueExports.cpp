@@ -165,7 +165,9 @@ ConsoleFunction(setMovement, void, 2, 2, "setMovement(bool enabled)")
 ConsoleFunction(fileExists, bool, 2, 2, "fileExists(string path)") //Because TGE sucks so much that it doesnt detect new files after it has started
 {
 	struct stat b;
-	return (stat(argv[1], &b) == 0);
+	char buf[512];
+	TGE::Con::expandScriptFilename(buf, 512, argv[1]);
+	return (stat(buf, &b) == 0);
 }
 
 ConsoleFunction(getWordDelim, const char*, 4, 4, "getWordDelim(str,delim,index)")
@@ -215,7 +217,9 @@ ConsoleFunction(combineAngAxis, const char*, 3, 3, "combineAngAxis(AngAxisF lhs,
 ConsoleFunction(setReplayPath, void, 2, 2, "setReplayPath(string path)")
 {
 	DebugPush("Entering setReplayPath");
-	rewindManager.replayPath = std::string(argv[1]);
+	char buf[512];
+	TGE::Con::expandScriptFilename(buf, 512, argv[1]);
+	rewindManager.replayPath = std::string(buf);
 	DebugPop("Leaving setReplayPath");
 }
 
@@ -240,14 +244,16 @@ ConsoleFunction(getReplayPath, const char *, 1, 1, "getReplayPath()")
 ConsoleFunction(loadReplay,const char *, 2, 3, "loadReplay(string path,bool ghostreplay = false)")
 {
 	TGE::Con::printf("Loading replay %s", argv[1]);
+	char buf[512];
+	TGE::Con::expandScriptFilename(buf, 512, argv[1]);
 	char* retbuff = TGE::Con::getReturnBuffer(1024);
 	if (argc > 2)
 	{
 		if (atoi(argv[2]) == 1)
-			strcpy(retbuff, ghostReplayManager.load(std::string(argv[1]),true).c_str());
+			strcpy(retbuff, ghostReplayManager.load(std::string(buf),true).c_str());
 	}
 	else
-		strcpy(retbuff, rewindManager.load(std::string(argv[1])).c_str());
+		strcpy(retbuff, rewindManager.load(std::string(buf)).c_str());
 	return retbuff;
 }
 
@@ -335,7 +341,9 @@ ConsoleFunction(getStateCount, int, 1, 1, "getStateCount()")
 
 ConsoleFunction(analyzeReplay, void, 3, 3, "analyzeReplay(string path, function onReplayLoaded(scriptObject))")
 {
-	std::string path = std::string(argv[1]);
+	char buf[512];
+	TGE::Con::expandScriptFilename(buf, 512, argv[1]);
+	std::string path = std::string(buf);
 	std::string callback = std::string(argv[2]);
 
 	workerThread.addTask([=]() {
