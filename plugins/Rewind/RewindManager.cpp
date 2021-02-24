@@ -7,7 +7,9 @@
 #include <thread>
 #include "MemoryStream.h"
 #include "Logging.h"
+#include "Dispatcher.h"
 
+extern Dispatcher dispatcher;
 
 std::vector<std::string> SplitStringDelim(std::string str, char delim);
 
@@ -416,13 +418,13 @@ int RewindManager::getFrameCount()
 
 void RewindManager::save(std::string path)
 {
-	DebugPush("Entering RewindManager::save");
+	dispatcher.run([]() { DebugPush("Entering RewindManager::save"); });
 	if (Frames.size() != 0) //We dun wanna save empty files
 		{
 			FILE *fMain;
 			fMain = fopen(path.c_str(), "wb");
-			TGE::Con::printf("Saving replay to %s", path.c_str());
-			TGE::Con::printf("Frames: %d", Frames.size());
+			dispatcher.run([=]() { TGE::Con::printf("Saving replay to %s", path.c_str()); });
+			dispatcher.run([=]() { TGE::Con::printf("Frames: %d", Frames.size()); });
 #ifdef  MBP
 			char version = 12;
 #else
@@ -430,7 +432,7 @@ void RewindManager::save(std::string path)
 #endif
 			fwrite(&version, sizeof(char), 1, fMain); //Yeah have to write the version
 
-			TGE::Con::printf("Compressing Replay");
+			dispatcher.run([]() { TGE::Con::printf("Compressing Replay"); });
 			MemoryStream m;
 
 			int framecount = Frames.size();
@@ -491,13 +493,14 @@ void RewindManager::save(std::string path)
 			auto sz = compressBound(size + 1);
 			Bytef* mem = new Bytef[sz + 1];
 			compress(mem, &sz, m.getBuffer(), m.length());
-			TGE::Con::printf("Completed Compression:%d bytes", sz);
+			dispatcher.run([=]() { TGE::Con::printf("Completed Compression:%d bytes", sz); });
 			fwrite(&size, sizeof(unsigned long), 1, fMain); //We gotta write the size of uncompressed replay so that we can allocate enough memory to uncompress the compressed replay
 			fwrite(mem, 1, sz, fMain);
 			fclose(fMain); //DONE
 			delete[] mem;
 		}
-	DebugPop("Leaving RewindManager::save");
+	dispatcher.run([]() { DebugPop("Leaving RewindManager::save"); });
+	dispatcher.run([]() { TGE::Con::executef(1, "OnReplaySaved"); });
 }
 
 std::string RewindManager::load(std::string path,bool isGhost)

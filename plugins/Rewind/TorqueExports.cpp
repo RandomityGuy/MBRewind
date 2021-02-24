@@ -13,6 +13,7 @@
 #include "RewindApi.h"
 #include "WorkerThread.h"
 #include "Logging.h"
+#include "Dispatcher.h"
 #ifdef __APPLE__
 #include <sys/stat.h>
 #include <unistd.h>
@@ -47,23 +48,16 @@ F32 replayTimeDelta = 0;
 
 int debugIndent = 0;
 
-std::vector<std::string> executeQueue;
-std::mutex executeMutex;
+std::thread::id mainThreadId;
+
+Dispatcher dispatcher;
 
 //---------------------------------------------------------------------------------------
 // Hacky Async
 
 ConsoleFunction(tickAsync, void, 1, 1, "tickAsync()")
 {
-	executeMutex.lock();
-	if (!executeQueue.empty())
-	{
-		for (auto& str : executeQueue) {
-			TGE::Con::evaluatef(str.c_str());
-		}
-	}
-	executeQueue.clear();
-	executeMutex.unlock();
+	dispatcher.tick();
 }
 
 //---------------------------------------------------------------------------------------
@@ -352,13 +346,13 @@ ConsoleFunction(analyzeReplay, void, 3, 3, "analyzeReplay(string path, function 
 
 		sprintf(buf, "$ReplayAnalysisReturn = new ScriptObject(ReplayAnalysis) { version = %d; framecount = %d; time = %d; elapsedtime = %d; replaymission = \"%s\"; };", info.version, info.frameCount, info.time, info.elapsedTime, info.replayMission.c_str());
 
-		executeMutex.lock();
-		executeQueue.push_back(std::string(buf));
+		std::string exec = std::string(buf);
+		dispatcher.run([=]() { TGE::Con::evaluatef(exec.c_str()); });
 
 		char buf2[1024];
 		sprintf(buf2, "%s($ReplayAnalysisReturn);", callback.c_str());
-		executeQueue.push_back(std::string(buf2));
-		executeMutex.unlock();
+		std::string exec2 = std::string(buf2);
+		dispatcher.run([=]() { TGE::Con::evaluatef(exec2.c_str()); });
 	});
 }
 
@@ -907,6 +901,7 @@ ConsoleFunction(GetMPAt, int, 2, 2, "GetMPAt(int index)")
 PLUGINCALLBACK void preEngineInit(PluginInterface *plugin)
 {
 	initiateLogging();
+	mainThreadId = std::this_thread::get_id();
 }
 
 PLUGINCALLBACK void postEngineInit(PluginInterface *plugin)

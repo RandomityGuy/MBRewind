@@ -1,5 +1,8 @@
 #pragma once
 #include <TorqueLib/TGE.h>
+#include <thread>
+
+extern std::thread::id mainThreadId;
 
 void initiateLogging();
 
@@ -12,18 +15,21 @@ void stopLogging();
 template<typename... Args>
 void DebugPrint(const char* printdata, Args... args)
 {
-	if (TGE::Con::getIntVariable("$Rewind::DebugInfo") == 1)
+	if (std::this_thread::get_id() == mainThreadId)  // Yeah uh we'll avoid calling those TGE functions in the side thread
 	{
-		std::string out;
-		extern int debugIndent;
-		for (int i = 0; i < debugIndent; i++)
-			out += std::string("  ");
-		out += std::string(printdata);
+		if (TGE::Con::getIntVariable("$Rewind::DebugInfo") == 1)
+		{
+			std::string out;
+			extern int debugIndent;
+			for (int i = 0; i < debugIndent; i++)
+				out += std::string("  ");
+			out += std::string(printdata);
 
-		logDebugV(out.c_str(), args...);
-		//TGE::Con::printf(out.c_str(), args...);
+			logDebugV(out.c_str(), args...);
+			//TGE::Con::printf(out.c_str(), args...);
 
-		assert(debugIndent >= 0);
+			assert(debugIndent >= 0);
+		}
 	}
 }
 
