@@ -232,10 +232,10 @@ add_library(DiscordRPC MODULE ${DISCORDRPC_SRC})
 target_link_libraries(DiscordRPC TorqueLib)
 if (MSVC)
 	target_link_libraries(DiscordRPC ${CMAKE_SOURCE_DIR}/discord-rpc.lib)
+	set_target_properties(DiscordRPC PROPERTIES COMPILE_FLAGS "/MD")
 else()
 	target_link_libraries(DiscordRPC ${CMAKE_SOURCE_DIR}/libdiscord-rpc.a)
 endif()
-set_target_properties(DiscordRPC PROPERTIES COMPILE_FLAGS "/MD")
 
 # FrameRateUnlock
 set (FRAMERATEUNLOCK_SRC
