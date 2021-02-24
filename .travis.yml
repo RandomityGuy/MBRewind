@@ -9,7 +9,7 @@ branches:
 
 script:
   - cmake -DMBPBUILD:BOOL=ON CMakeLists.txt
-  - cmake  --build . --target Rewind
+  - cmake  --build . --target Rewind FrameRateUnlock DiscordRPC
 
 deploy:
   provider: releases
