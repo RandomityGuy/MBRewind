@@ -1,5 +1,4 @@
 #include <TorqueLib/TGE.h>
-#define DISCORD_DISABLE_IO_THREAD
 #ifdef WIN32
 #include "include/win/discord_rpc.h"
 #else // Must be mac
@@ -38,29 +37,37 @@ void InitDiscord()
     handlers.joinRequest = NULL;
 
     // Discord_Initialize(const char* applicationId, DiscordEventHandlers* handlers, int autoRegister, const char* optionalSteamId)
-    Discord_Initialize("747396664813289534", &handlers, 0, "");
+    Discord_Initialize("747396664813289534", &handlers, 0, nullptr);
 }
 
 
 void RefreshDiscord()
 {
-    //Discord_UpdateConnection();
+    Discord_UpdateConnection();
     Discord_RunCallbacks();
 }
 
 ConsoleFunction(initDiscordRPC, void, 1, 1, "initDiscordRPC()")
 {
     InitDiscord();
+    RefreshDiscord();
 }
 
 ConsoleFunction(shutdownDiscordRPC, void, 1, 1, "shutdownDiscordRPC()")
 {
+    RefreshDiscord();
     Discord_Shutdown();
 }
 
 ConsoleFunction(clearDiscordRPC, void, 1, 1, "clearDiscordRPC()")
 {
     Discord_ClearPresence();
+    RefreshDiscord();
+}
+
+ConsoleFunction(updateDiscordRPC, void, 1, 1, "updateDiscordRPC()")
+{
+    RefreshDiscord();
 }
 
 ConsoleFunction(setDiscordRPCLevel, void, 2, 2, "setDiscordRPCLevel(string level)")
