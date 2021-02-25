@@ -8,7 +8,7 @@ branches:
   - master
 
 script:
-  - cmake -DMBPBUILD:BOOL=ON CMakeLists.txt
+  - cmake -DMBPBUILD:BOOL=OFF CMakeLists.txt
   - cmake  --build . --target Rewind FrameRateUnlock DiscordRPC
 
 deploy:
