@@ -1,6 +1,6 @@
 # The MB Rewind Project
 
-These are the source files required to build the Rewind plugin along with a few other plugins used by the games using rewind.
+These are the source files required to build the Rewind plugin along with a few other plugins used by MB-Rewind
 
 ## Build
 
