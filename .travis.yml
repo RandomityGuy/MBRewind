@@ -15,7 +15,7 @@ jobs:
 
     deploy:
       provider: releases
-      api_key: "9931245ea403910e49d427b95fc3abde22968ea7"
+      api_key: github_oauth
       file_glob: true
       file: ./*
       skip_cleanup: true
@@ -26,7 +26,7 @@ jobs:
 
     deploy:
       provider: releases
-      api_key: "9931245ea403910e49d427b95fc3abde22968ea7"
+      api_key: github_oauth
       file_glob: true
       file: ./*
       skip_cleanup: true
