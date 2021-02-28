@@ -55,10 +55,14 @@ Dispatcher dispatcher;
 //---------------------------------------------------------------------------------------
 // Hacky Async
 
-ConsoleFunction(tickAsync, void, 1, 1, "tickAsync()")
+// Tick our dispatcher for the callbacks and shit to run on the main thread
+TorqueOverride(void, TimeManager::process, (), originalProcess)
 {
 	dispatcher.tick();
+	originalProcess();
+	return;
 }
+
 
 //---------------------------------------------------------------------------------------
 // Logging
@@ -326,7 +330,7 @@ ConsoleFunction(getFrameCount, int, 1, 1, "getFrameCount()")
 
 ConsoleFunction(saveState, void, 1, 1, "saveState()")
 {
-	rewindManager.saveState();
+	rewindManager.saveState(&workerThread);
 }
 
 ConsoleFunction(loadState, void, 2, 2, "loadState(int state)")

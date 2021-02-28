@@ -13,7 +13,7 @@ script:
 
 deploy:
   provider: releases
-  api_key: "73e9334c2604d90ced54e34dcd63a02dafed2767"
+  api_key: "9931245ea403910e49d427b95fc3abde22968ea7"
   file_glob: true
   file: ./*
   skip_cleanup: true

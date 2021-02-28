@@ -63,7 +63,7 @@ public:
 	Frame* getNextNonElapsedFrame(float delta);
 	Frame* getRealtimeFrameAtMs(float ms);
 	int getSavedStateCount();
-	void saveState();
+	void saveState(Worker* worker);
 	void loadState(int saveStateIndex);
 	void clearSaveStates();
 	void spliceReplayFromMs(float ms);

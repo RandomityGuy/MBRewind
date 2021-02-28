@@ -7,7 +7,8 @@
 */
 class MemoryStream
 {
-	const int REALLOCATE_SIZE = 256;
+	// THis is large cuz our replays uncompressed are large lol
+	const int REALLOCATE_SIZE = 32768;
 
 	uint8_t* buffer;
 	size_t bufferSize;

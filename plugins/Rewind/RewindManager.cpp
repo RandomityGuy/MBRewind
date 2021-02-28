@@ -501,6 +501,7 @@ void RewindManager::save(std::string path)
 		}
 	dispatcher.run([]() { DebugPop("Leaving RewindManager::save"); });
 	dispatcher.run([]() { TGE::Con::executef(1, "OnReplaySaved"); });
+	dispatcher.run([]() { TGE::Con::evaluatef("setModPaths(getModPaths());"); });
 }
 
 std::string RewindManager::load(std::string path,bool isGhost)
@@ -1459,10 +1460,21 @@ void RewindManager::clearSaveStates()
 	DebugPop("Leaving RewindManager::clearSaveStates");
 }
 
-void RewindManager::saveState()
+void RewindManager::saveState(Worker* worker)
 {
 	DebugPush("Entering RewindManager::saveState");
 	SaveStates.push_back(Frames);
+	if (worker != NULL)
+	{
+		RewindManager* copy = new RewindManager(*this);
+		worker->addTask([=]() {
+			std::string frameTime = std::to_string(Frames.back().ms);
+			std::string filePath = replayPath.substr(0, replayPath.find_last_of('.')) + frameTime + "-" + std::to_string(SaveStates.size()) + ".rwx";
+			copy->save(filePath);
+			deleteSafe(copy);
+			// DebugPop("Leaving RewindManager::clear");
+			});
+	}
 	DebugPop("Leaving RewindManager::saveState");
 }
 
