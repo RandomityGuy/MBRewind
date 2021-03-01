@@ -22,7 +22,7 @@ jobs:
 
   - script:
     - cmake -DMBPBUILD:BOOL=ON CMakeLists.txt
-    - cmake cmake  --build . --target Rewind FrameRateUnlock DiscordRPC
+    - cmake --build . --target Rewind FrameRateUnlock DiscordRPC
 
     deploy:
       provider: releases
